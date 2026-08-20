@@ -135,6 +135,7 @@ export interface AppNotification {
   title: string;
   message: string;
   kind: "info" | "success" | "warning";
+  link?: string; // route interne ouverte au clic
   read: boolean;
   createdAt: string;
 }

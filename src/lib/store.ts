@@ -48,10 +48,12 @@ export interface AppState {
   /* ---- Élèves ---- */
   addStudent: (s: Omit<Student, "id" | "joinedAt">) => Student;
   updateStudent: (id: string, patch: Partial<Student>) => void;
+  deleteStudent: (id: string) => void;
 
   /* ---- Objectifs ---- */
   addGoal: (g: Omit<Goal, "id">) => void;
   updateGoal: (id: string, patch: Partial<Goal>) => void;
+  deleteGoal: (id: string) => void;
 
   /* ---- Séances & comptes rendus ---- */
   addSession: (s: Omit<Session, "id">) => void;
@@ -69,6 +71,7 @@ export interface AppState {
   /* ---- Messagerie & notifications ---- */
   sendMessage: (senderId: string, receiverId: string, content: string, attachment?: string) => void;
   markThreadRead: (meId: string, otherId: string) => void;
+  markNotificationRead: (id: string) => void;
   markAllNotificationsRead: (userId: string) => void;
 
   /* ---- Utilisateurs ---- */
@@ -81,9 +84,10 @@ export interface AppState {
   resetDemo: () => void;
 }
 
-function notify(state: AppState, userId: string, title: string, message: string, kind: AppNotification["kind"]): AppNotification[] {
+function notify(state: AppState, userId: string, title: string, message: string, kind: AppNotification["kind"], link?: string): AppNotification[] {
+  if (!userId) return state.notifications;
   return [
-    { id: uid(), userId, title, message, kind, read: false, createdAt: new Date().toISOString() },
+    { id: uid(), userId, title, message, kind, link, read: false, createdAt: new Date().toISOString() },
     ...state.notifications,
   ];
 }
@@ -174,6 +178,21 @@ export const useApp = create<AppState>()(
         set((s) => ({ students: s.students.map((st) => (st.id === id ? { ...st, ...patch } : st)) }));
         get().toast("Profil mis à jour.", "success");
       },
+      deleteStudent: (id) => {
+        const target = get().students.find((s) => s.id === id);
+        const sessionIds = new Set(get().sessions.filter((s) => s.studentId === id).map((s) => s.id));
+        set((s) => ({
+          students: s.students.filter((x) => x.id !== id),
+          goals: s.goals.filter((g) => g.studentId !== id),
+          sessions: s.sessions.filter((x) => x.studentId !== id),
+          reports: s.reports.filter((r) => !sessionIds.has(r.sessionId)),
+          evaluations: s.evaluations.filter((e) => e.studentId !== id),
+          resources: s.resources.map((r) =>
+            r.assignedTo.includes(id) ? { ...r, assignedTo: r.assignedTo.filter((a) => a !== id) } : r
+          ),
+        }));
+        get().toast(`Le dossier de ${target ? `${target.firstName} ${target.lastName}` : "l'élève"} et toutes ses données ont été supprimés.`, "info");
+      },
 
       /* ---- Objectifs ---- */
       addGoal: (g) => {
@@ -192,6 +211,10 @@ export const useApp = create<AppState>()(
       updateGoal: (id, patch) => {
         set((s) => ({ goals: s.goals.map((g) => (g.id === id ? { ...g, ...patch } : g)) }));
         if (patch.progress !== undefined || patch.status !== undefined) get().toast("Objectif mis à jour.", "success");
+      },
+      deleteGoal: (id) => {
+        set((s) => ({ goals: s.goals.filter((g) => g.id !== id) }));
+        get().toast("Objectif supprimé du parcours.", "info");
       },
 
       /* ---- Séances ---- */
