@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X, CheckCircle2, Info, AlertCircle } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useApp } from "../lib/store";
 
 /* ------------------------------- Logo ------------------------------- */
@@ -315,74 +314,192 @@ export function CountUp({ to, suffix = "", duration = 1600 }: { to: number; suff
   );
 }
 
-/* ------------------------------- Graphiques ------------------------------- */
+/* ------------------------------- Graphiques (SVG artisanaux, zéro dépendance) ------------------------------- */
 
-const tooltipStyle = {
-  borderRadius: 12,
-  border: "1px solid #dcebe4",
-  background: "#fdfdfb",
-  fontSize: 12,
-  fontFamily: "Poppins, sans-serif",
-  color: "#17251f",
-  boxShadow: "0 10px 28px -14px rgb(13 51 42 / 0.25)",
-};
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
+  return mounted;
+}
 
 export function TrendArea({ data, color = "#1f6c57", name = "Valeur" }: { data: { name: string; value: number }[]; color?: string; name?: string }) {
+  const gid = useId();
+  const mounted = useMounted();
+  const [hover, setHover] = useState<number | null>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  if (data.length === 0) return null;
+
+  const values = data.map((d) => d.value);
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  const pad = rawMax === rawMin ? 1 : (rawMax - rawMin) * 0.18;
+  const min = Math.max(0, rawMin - pad);
+  const max = rawMax + pad;
+  const W = 300;
+  const H = 120;
+  const px = (i: number) => (data.length === 1 ? W / 2 : (i / (data.length - 1)) * (W - 16) + 8);
+  const py = (v: number) => H - 10 - ((v - min) / (max - min)) * (H - 24);
+  const pts = data.map((d, i) => ({ x: px(i), y: py(d.value) }));
+  const line = pts
+    .map((p, i) => {
+      if (i === 0) return `M ${p.x} ${p.y}`;
+      const prev = pts[i - 1];
+      const cx = (prev.x + p.x) / 2;
+      return `C ${cx} ${prev.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
+    })
+    .join(" ");
+  const area = `${line} L ${pts[pts.length - 1].x} ${H} L ${pts[0].x} ${H} Z`;
+
+  const onMove = (e: React.MouseEvent) => {
+    const rect = boxRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const rel = (e.clientX - rect.left) / rect.width;
+    setHover(Math.max(0, Math.min(data.length - 1, Math.round(rel * (data.length - 1)))));
+  };
+
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-        <defs>
-          <linearGradient id={`grad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.28} />
-            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#dcebe4" vertical={false} />
-        <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#5f8ca0" }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: "#5f8ca0" }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [v, name]} />
-        <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} fill={`url(#grad-${color.replace("#", "")})`} />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="flex h-full flex-col">
+      <div ref={boxRef} className="relative min-h-0 flex-1" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+        {[0.25, 0.5, 0.75].map((g) => (
+          <span key={g} className="absolute left-0 right-0 border-t border-dashed border-pine-100" style={{ top: `${g * 100}%` }} />
+        ))}
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible">
+          <defs>
+            <linearGradient id={`grad-${gid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <path d={area} fill={`url(#grad-${gid})`} style={{ opacity: mounted ? 1 : 0, transition: "opacity 0.9s ease 0.15s" }} />
+          <path
+            d={line} fill="none" stroke={color} strokeWidth={2.6} strokeLinecap="round" vectorEffect="non-scaling-stroke"
+            pathLength={1} strokeDasharray={1} strokeDashoffset={mounted ? 0 : 1}
+            style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.22,0.61,0.36,1)" }}
+          />
+          {hover !== null && <line x1={pts[hover].x} y1={8} x2={pts[hover].x} y2={H - 6} stroke={color} strokeOpacity={0.25} strokeWidth={1.4} vectorEffect="non-scaling-stroke" />}
+        </svg>
+        {pts.map((p, i) => (
+          <span
+            key={i}
+            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white"
+            style={{
+              left: `${(p.x / W) * 100}%`, top: `${(p.y / H) * 100}%`,
+              width: hover === i ? 13 : 9, height: hover === i ? 13 : 9,
+              borderColor: color, opacity: mounted ? 1 : 0,
+              transition: "opacity 0.4s ease, width 0.15s ease, height 0.15s ease", transitionDelay: mounted ? `${0.25 + i * 0.06}s` : "0s",
+            }}
+          />
+        ))}
+        {hover !== null && (
+          <div
+            className="pointer-events-none absolute z-10 whitespace-nowrap rounded-lg border border-pine-100 bg-white px-2.5 py-1.5 text-[11px] font-bold text-pine-800 shadow-lift"
+            style={{ left: `${(pts[hover].x / W) * 100}%`, top: `${(pts[hover].y / H) * 100}%`, transform: "translate(-50%, -170%)" }}
+          >
+            {name} · <span style={{ color }}>{data[hover].value}</span>
+          </div>
+        )}
+      </div>
+      <div className="mt-2 flex justify-between gap-2">
+        {data.map((d, i) => (
+          <button
+            key={i} type="button" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+            className={`cursor-pointer rounded-md px-1 py-0.5 text-[10px] font-semibold transition-colors ${hover === i ? "bg-pine-100 text-pine-900" : "text-pine-400"}`}
+          >
+            {d.name}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function MonthBars({ data, color = "#d2921a", name = "Séances" }: { data: { name: string; value: number }[]; color?: string; name?: string }) {
+  const mounted = useMounted();
+  const [hover, setHover] = useState<number | null>(null);
+  if (data.length === 0) return null;
+  const max = Math.max(...data.map((d) => d.value), 1);
+
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#dcebe4" vertical={false} />
-        <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#5f8ca0" }} axisLine={false} tickLine={false} />
-        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#5f8ca0" }} axisLine={false} tickLine={false} />
-        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgb(23 87 69 / 0.05)" }} formatter={(v: number) => [v, name]} />
-        <Bar dataKey="value" fill={color} radius={[6, 6, 0, 0]} maxBarSize={34} />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="flex h-full flex-col">
+      <div className="flex min-h-0 flex-1 items-end gap-2 sm:gap-3">
+        {data.map((d, i) => (
+          <div
+            key={d.name}
+            className="relative flex h-full flex-1 cursor-pointer flex-col justify-end"
+            onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+          >
+            <span
+              className={`pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-pine-100 bg-white px-2 py-1 text-[10px] font-bold text-pine-800 shadow-lift transition-opacity duration-200 ${hover === i ? "opacity-100" : "opacity-0"}`}
+              style={{ bottom: `calc(${Math.max(6, (d.value / max) * 86)}% + 10px)` }}
+            >
+              {d.value} {name.toLowerCase()}
+            </span>
+            <div className="relative w-full overflow-hidden rounded-t-lg bg-pine-50" style={{ height: "86%" }}>
+              <span
+                className="absolute inset-x-0 bottom-0 rounded-t-lg"
+                style={{
+                  height: mounted ? `${(d.value / max) * 100}%` : "0%",
+                  backgroundColor: color,
+                  opacity: hover === null || hover === i ? 1 : 0.35,
+                  transition: `height 0.9s cubic-bezier(0.22,0.61,0.36,1) ${i * 70}ms, opacity 0.25s ease`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex gap-2 sm:gap-3">
+        {data.map((d) => (
+          <span key={d.name} className={`flex-1 text-center text-[10px] font-semibold transition-colors ${hover !== null && data[hover]?.name === d.name ? "text-pine-900" : "text-pine-400"}`}>{d.name}</span>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function Donut({ data }: { data: { name: string; value: number; color: string }[] }) {
+  const mounted = useMounted();
+  const [hover, setHover] = useState<number | null>(null);
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const R = 56;
+  const C = 2 * Math.PI * R;
+  let acc = 0;
+
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-wrap items-center justify-center gap-5">
       <div className="relative h-40 w-40 shrink-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={data} dataKey="value" nameKey="name" innerRadius={52} outerRadius={74} paddingAngle={3} strokeWidth={0}>
-              {data.map((d) => (
-                <Cell key={d.name} fill={d.color} />
-              ))}
-            </Pie>
-            <Tooltip contentStyle={tooltipStyle} />
-          </PieChart>
-        </ResponsiveContainer>
-        <span className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-display text-2xl font-bold text-pine-900">{data.reduce((s, d) => s + d.value, 0)}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-pine-500/70">besoins</span>
+        <svg viewBox="0 0 140 140" className="h-full w-full -rotate-90">
+          <circle cx={70} cy={70} r={R} fill="none" stroke="#eff6f3" strokeWidth={20} />
+          {data.map((d, i) => {
+            const frac = total === 0 ? 0 : d.value / total;
+            const dash = Math.max(0, frac * C - 3);
+            const offset = -acc * C;
+            acc += frac;
+            return (
+              <circle
+                key={d.name} cx={70} cy={70} r={R} fill="none" stroke={d.color} strokeLinecap="round"
+                strokeWidth={hover === i ? 25 : 20}
+                strokeDasharray={`${mounted ? dash : 0} ${C}`} strokeDashoffset={offset}
+                className="cursor-pointer" style={{ transition: "stroke-dasharray 1s cubic-bezier(0.22,0.61,0.36,1), stroke-width 0.2s ease, opacity 0.2s ease", opacity: hover === null || hover === i ? 1 : 0.3 }}
+                onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+              />
+            );
+          })}
+        </svg>
+        <span className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span className="font-display text-2xl font-bold text-pine-900">{hover !== null ? data[hover].value : total}</span>
+          <span className="max-w-[84px] truncate text-[10px] font-semibold uppercase tracking-wide text-pine-500/70">{hover !== null ? data[hover].name : "besoins"}</span>
         </span>
       </div>
-      <ul className="space-y-1.5 text-xs">
-        {data.map((d) => (
-          <li key={d.name} className="flex items-center gap-2">
+      <ul className="space-y-1 text-xs">
+        {data.map((d, i) => (
+          <li
+            key={d.name} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+            className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 transition-colors ${hover === i ? "bg-pine-50" : ""}`}
+          >
             <StatusDot color={d.color} />
             <span className="font-medium text-pine-800">{d.name}</span>
             <span className="text-pine-500/70">· {d.value}</span>

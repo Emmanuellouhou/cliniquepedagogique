@@ -23,26 +23,44 @@ function ScrollToTop() {
 }
 
 /* Filet de sécurité : un écran défaillant ne doit jamais bloquer toute l'application */
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-  state = { hasError: false };
-  static getDerivedStateFromError() {
-    return { hasError: true };
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  state = { hasError: false, error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, info: unknown) {
+    console.error("[Clinique d'Éducation] Erreur d'écran :", error, info);
   }
   render() {
     if (this.state.hasError) {
+      const details = this.state.error?.message ?? "Erreur inconnue";
+      const stack = (this.state.error?.stack ?? "").split("\n").slice(1, 5).join("\n");
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 text-center">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 py-12 text-center">
           <span className="rounded-2xl bg-coral-50 p-5 text-coral-600"><AlertTriangle size={32} /></span>
           <h1 className="mt-6 font-display text-2xl font-bold text-pine-950">Un incident est survenu</h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-pine-600">
-            L'application a rencontré une erreur inattendue sur cet écran. Vos données sont en sécurité : rechargez la page pour reprendre là où vous en étiez.
+            L'application a rencontré une erreur inattendue sur cet écran. Vos données sont en sécurité.
           </p>
-          <button
-            onClick={() => { this.setState({ hasError: false }); window.location.hash = "#/"; window.location.reload(); }}
-            className="mt-7 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-pine-700 px-5 py-3 text-sm font-semibold text-paper shadow-soft transition-all hover:-translate-y-px hover:bg-pine-600"
-          >
-            <RotateCcw size={15} /> Recharger l'application
-          </button>
+          <details className="mt-5 w-full max-w-lg rounded-xl border border-pine-100 bg-white p-4 text-left shadow-soft">
+            <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-pine-500">Détail technique de l'erreur</summary>
+            <p className="mt-3 break-words rounded-lg bg-coral-50 px-3 py-2 font-mono text-[12px] font-semibold text-coral-700">{details}</p>
+            {stack && <pre className="nice-scroll mt-2 overflow-x-auto rounded-lg bg-pine-50 px-3 py-2 font-mono text-[11px] leading-relaxed text-pine-600">{stack}</pre>}
+          </details>
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-pine-700 px-5 py-3 text-sm font-semibold text-paper shadow-soft transition-all hover:-translate-y-px hover:bg-pine-600"
+            >
+              <RotateCcw size={15} /> Réessayer
+            </button>
+            <button
+              onClick={() => { window.location.hash = "#/"; window.location.reload(); }}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-pine-100 px-5 py-3 text-sm font-semibold text-pine-800 transition-all hover:-translate-y-px hover:bg-pine-200"
+            >
+              Recharger l'application
+            </button>
+          </div>
         </div>
       );
     }
