@@ -338,8 +338,8 @@ export const useApp = create<AppState>()(
       },
     }),
     {
-      name: "ceip-store-v1",
-      version: 1,
+      name: "ceip-store-v2",
+      version: 2,
       partialize: (s) => ({
         users: s.users,
         students: s.students,

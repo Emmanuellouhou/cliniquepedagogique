@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ShieldCheck, KeyRound, UserPlus, Sparkles } from "lucide-react";
-import { Button, Field, Logo, inputCls, Avatar } from "../components/ui";
+import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, Mail, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { Button, Field, Logo, Modal, inputCls, Avatar } from "../components/ui";
 import { useApp } from "../lib/store";
 import type { Role } from "../lib/data";
 
@@ -66,6 +66,7 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   useEffect(() => { document.title = "Connexion — Clinique d'Éducation & de l'Innovation Pédagogique"; }, []);
 
@@ -99,7 +100,7 @@ export function LoginPage() {
         )}
         <div className="flex items-center justify-between">
           <Link to="/register" className="text-[13px] font-semibold text-pine-700 hover:text-pine-600">Créer un compte</Link>
-          <button type="button" className="text-[13px] font-semibold text-pine-500 hover:text-pine-700 transition-colors cursor-pointer">
+          <button type="button" onClick={() => setForgotOpen(true)} className="text-[13px] font-semibold text-pine-500 hover:text-pine-700 transition-colors cursor-pointer">
             Mot de passe oublié ?
           </button>
         </div>
@@ -130,7 +131,61 @@ export function LoginPage() {
           ))}
         </div>
       </div>
+      <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} initialEmail={email} />
     </AuthFrame>
+  );
+}
+
+function ForgotPasswordModal({ open, onClose, initialEmail }: { open: boolean; onClose: () => void; initialEmail: string }) {
+  const toast = useApp((s) => s.toast);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setEmail(initialEmail);
+      setError("");
+      setSent(false);
+    }
+  }, [open, initialEmail]);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setError("Veuillez saisir une adresse e-mail valide.");
+    setSent(true);
+    toast("Lien de réinitialisation envoyé (simulation de démonstration).", "info");
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Réinitialiser le mot de passe">
+      {sent ? (
+        <div className="flex flex-col items-center py-6 text-center">
+          <span className="rounded-full bg-pine-100 p-4 text-pine-700 animate-pop"><CheckCircle2 size={32} /></span>
+          <h4 className="mt-5 font-display text-lg font-bold text-pine-950">Vérifiez votre boîte mail</h4>
+          <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-pine-600">
+            Si un compte existe avec l'adresse <strong className="text-pine-800">{email}</strong>, vous recevrez un lien de réinitialisation d'ici quelques minutes.
+          </p>
+          <Button variant="secondary" className="mt-6" onClick={onClose}>Retour à la connexion</Button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4" noValidate>
+          <p className="text-[13px] leading-relaxed text-pine-600">
+            Indiquez l'adresse e-mail associée à votre compte : nous vous enverrons un lien pour définir un nouveau mot de passe.
+          </p>
+          <Field label="Adresse e-mail" error={error}>
+            <div className="relative">
+              <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-pine-400" />
+              <input type="email" autoComplete="email" className={`${inputCls(error)} pl-10`} value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} placeholder="vous@exemple.fr" />
+            </div>
+          </Field>
+          <div className="flex justify-end gap-3 border-t border-pine-100 pt-4">
+            <Button type="button" variant="ghost" onClick={onClose}>Annuler</Button>
+            <Button type="submit">Envoyer le lien</Button>
+          </div>
+        </form>
+      )}
+    </Modal>
   );
 }
 

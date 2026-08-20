@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { Component, useEffect, type ReactNode } from "react";
 import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Building2 } from "lucide-react";
+import { AlertTriangle, Building2, RotateCcw } from "lucide-react";
 import { ToastHost } from "./components/ui";
 import { useApp } from "./lib/store";
 import type { Role } from "./lib/data";
@@ -20,6 +20,34 @@ function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => window.scrollTo({ top: 0 }), [pathname]);
   return null;
+}
+
+/* Filet de sécurité : un écran défaillant ne doit jamais bloquer toute l'application */
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 text-center">
+          <span className="rounded-2xl bg-coral-50 p-5 text-coral-600"><AlertTriangle size={32} /></span>
+          <h1 className="mt-6 font-display text-2xl font-bold text-pine-950">Un incident est survenu</h1>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-pine-600">
+            L'application a rencontré une erreur inattendue sur cet écran. Vos données sont en sécurité : rechargez la page pour reprendre là où vous en étiez.
+          </p>
+          <button
+            onClick={() => { this.setState({ hasError: false }); window.location.hash = "#/"; window.location.reload(); }}
+            className="mt-7 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-pine-700 px-5 py-3 text-sm font-semibold text-paper shadow-soft transition-all hover:-translate-y-px hover:bg-pine-600"
+          >
+            <RotateCcw size={15} /> Recharger l'application
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 function Public({ children }: { children: React.ReactNode }) {
@@ -74,6 +102,7 @@ function DashboardHome() {
 export default function App() {
   return (
     <HashRouter>
+      <ErrorBoundary>
       <ScrollToTop />
       <Routes>
         {/* Pages publiques */}
@@ -104,6 +133,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ErrorBoundary>
       <ToastHost />
     </HashRouter>
   );

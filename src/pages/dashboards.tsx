@@ -19,7 +19,7 @@ function SessionLine({ s, showStudent = true }: { s: Session; showStudent?: bool
   const student = students.find((x) => x.id === s.studentId);
   return (
     <Link
-      to={student ? `/dashboard/students/${student.id}` : "#"}
+      to={student ? `/dashboard/students/${student.id}` : "/dashboard/calendar"}
       className="group flex items-center gap-3 rounded-xl border border-transparent p-3 transition-all hover:border-pine-100 hover:bg-white hover:shadow-soft"
     >
       <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl text-paper" style={{ backgroundColor: SESSION_TYPE_COLORS[s.type] }}>
@@ -179,7 +179,7 @@ export function AdminDashboard() {
               const session = state.sessions.find((s) => s.id === r.sessionId);
               const student = state.students.find((s) => s.id === session?.studentId);
               return (
-                <Link key={r.id} to={student ? `/dashboard/students/${student.id}` : "#"} className="group rounded-xl border border-pine-100 bg-white/60 p-4 transition-all hover:border-pine-300 hover:shadow-soft">
+                <Link key={r.id} to={student ? `/dashboard/students/${student.id}` : "/dashboard"} className="group rounded-xl border border-pine-100 bg-white/60 p-4 transition-all hover:border-pine-300 hover:shadow-soft">
                   <div className="flex items-center gap-2.5">
                     <span className="rounded-lg bg-pine-100 p-2 text-pine-700"><FileText size={15} /></span>
                     <p className="text-[13px] font-bold text-pine-900 group-hover:text-pine-700">{session?.type} — {student ? fullName(student) : "Élève"}</p>
