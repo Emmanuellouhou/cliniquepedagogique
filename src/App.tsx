@@ -18,7 +18,9 @@ import { GoalsPage, EvaluationsPage, ResourcesPage, ReportsPage, SettingsPage } 
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo({ top: 0 }), [pathname]);
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
   return null;
 }
 
@@ -49,7 +51,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
           </details>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <button
-              onClick={() => this.setState({ hasError: false, error: null })}
+              onClick={() => { window.location.hash = "#/dashboard"; this.setState({ hasError: false, error: null }); }}
               className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-pine-700 px-5 py-3 text-sm font-semibold text-paper shadow-soft transition-all hover:-translate-y-px hover:bg-pine-600"
             >
               <RotateCcw size={15} /> Réessayer

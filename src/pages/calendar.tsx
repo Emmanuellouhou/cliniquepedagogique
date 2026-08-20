@@ -245,12 +245,15 @@ export function CalendarPage() {
         </Reveal>
       )}
 
-      <SessionFormModal
-        open={createOpen || editing !== null}
-        onClose={() => { setCreateOpen(false); setEditing(null); }}
-        editing={editing}
-        presetDate={presetDate}
-      />
+      {(createOpen || editing !== null) && (
+        <SessionFormModal
+          key={editing?.id ?? presetDate ?? "nouvelle"}
+          open
+          onClose={() => { setCreateOpen(false); setEditing(null); }}
+          editing={editing}
+          presetDate={presetDate}
+        />
+      )}
     </div>
   );
 }

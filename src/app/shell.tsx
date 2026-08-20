@@ -57,7 +57,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
 
-  useEffect(() => setMobileOpen(false), [location.pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
   useEffect(() => {
     const title = Object.keys(TITLES).find((k) => location.pathname.startsWith(k));
     document.title = `${title ? TITLES[title] : "Espace"} — Clinique d'Éducation`;

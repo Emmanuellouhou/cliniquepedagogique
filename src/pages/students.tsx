@@ -195,11 +195,14 @@ export function StudentsPage() {
         </>
       )}
 
-      <StudentFormModal open={modalOpen} onClose={() => setModalOpen(false)} editing={editing} pros={pros} parents={parents} />
+      {modalOpen && (
+        <StudentFormModal key={editing?.id ?? "nouveau"} open onClose={() => setModalOpen(false)} editing={editing} pros={pros} parents={parents} />
+      )}
     </div>
   );
 }
 
+/* Montée uniquement à l'ouverture (par le parent) : état initial toujours propre. */
 function StudentFormModal({ open, onClose, editing, pros, parents }: {
   open: boolean; onClose: () => void; editing: Student | null;
   pros: { id: string; firstName: string; lastName: string }[];
@@ -208,20 +211,12 @@ function StudentFormModal({ open, onClose, editing, pros, parents }: {
   const state = useApp();
   const me = state.currentUser!;
   const navigate = useNavigate();
-  const [form, setForm] = useState({ firstName: "", lastName: "", birthDate: "", schoolLevel: "CM1", school: "", parentId: "", professionalId: "", status: "actif" as StudentStatus, difficulties: [] as string[] });
+  const [form, setForm] = useState(() =>
+    editing
+      ? { firstName: editing.firstName, lastName: editing.lastName, birthDate: editing.birthDate, schoolLevel: editing.schoolLevel, school: editing.school, parentId: editing.parentId, professionalId: editing.professionalId, status: editing.status, difficulties: [...editing.difficulties] }
+      : { firstName: "", lastName: "", birthDate: "", schoolLevel: "CM1", school: "", parentId: parents[0]?.id ?? "", professionalId: me.role === "professional" ? me.id : pros[0]?.id ?? "", status: "actif" as StudentStatus, difficulties: [] as string[] }
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [initialized, setInitialized] = useState<string | null>(null);
-
-  if (open && initialized !== (editing?.id ?? "new")) {
-    setInitialized(editing?.id ?? "new");
-    setErrors({});
-    setForm(
-      editing
-        ? { firstName: editing.firstName, lastName: editing.lastName, birthDate: editing.birthDate, schoolLevel: editing.schoolLevel, school: editing.school, parentId: editing.parentId, professionalId: editing.professionalId, status: editing.status, difficulties: [...editing.difficulties] }
-        : { firstName: "", lastName: "", birthDate: "", schoolLevel: "CM1", school: "", parentId: parents[0]?.id ?? "", professionalId: me.role === "professional" ? me.id : pros[0]?.id ?? "", status: "actif", difficulties: [] }
-    );
-  }
-  if (!open && initialized !== null) setInitialized(null);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();

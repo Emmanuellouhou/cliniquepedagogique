@@ -316,18 +316,8 @@ export function CountUp({ to, suffix = "", duration = 1600 }: { to: number; suff
 
 /* ------------------------------- Graphiques (SVG artisanaux, zéro dépendance) ------------------------------- */
 
-function useMounted() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const t = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(t);
-  }, []);
-  return mounted;
-}
-
 export function TrendArea({ data, color = "#1f6c57", name = "Valeur" }: { data: { name: string; value: number }[]; color?: string; name?: string }) {
   const gid = useId();
-  const mounted = useMounted();
   const [hover, setHover] = useState<number | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   if (data.length === 0) return null;
@@ -373,11 +363,11 @@ export function TrendArea({ data, color = "#1f6c57", name = "Valeur" }: { data: 
               <stop offset="100%" stopColor={color} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <path d={area} fill={`url(#grad-${gid})`} style={{ opacity: mounted ? 1 : 0, transition: "opacity 0.9s ease 0.15s" }} />
+          <path d={area} fill={`url(#grad-${gid})`} style={{ animation: "chartFade 0.9s ease 0.15s both" }} />
           <path
             d={line} fill="none" stroke={color} strokeWidth={2.6} strokeLinecap="round" vectorEffect="non-scaling-stroke"
-            pathLength={1} strokeDasharray={1} strokeDashoffset={mounted ? 0 : 1}
-            style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.22,0.61,0.36,1)" }}
+            pathLength={1} strokeDasharray={1} strokeDashoffset={0}
+            style={{ animation: "drawLine 1.2s cubic-bezier(0.22,0.61,0.36,1) both" }}
           />
           {hover !== null && <line x1={pts[hover].x} y1={8} x2={pts[hover].x} y2={H - 6} stroke={color} strokeOpacity={0.25} strokeWidth={1.4} vectorEffect="non-scaling-stroke" />}
         </svg>
@@ -388,8 +378,9 @@ export function TrendArea({ data, color = "#1f6c57", name = "Valeur" }: { data: 
             style={{
               left: `${(p.x / W) * 100}%`, top: `${(p.y / H) * 100}%`,
               width: hover === i ? 13 : 9, height: hover === i ? 13 : 9,
-              borderColor: color, opacity: mounted ? 1 : 0,
-              transition: "opacity 0.4s ease, width 0.15s ease, height 0.15s ease", transitionDelay: mounted ? `${0.25 + i * 0.06}s` : "0s",
+              borderColor: color,
+              animation: `chartFade 0.4s ease ${0.25 + i * 0.06}s both`,
+              transition: "width 0.15s ease, height 0.15s ease",
             }}
           />
         ))}
@@ -417,7 +408,6 @@ export function TrendArea({ data, color = "#1f6c57", name = "Valeur" }: { data: 
 }
 
 export function MonthBars({ data, color = "#d2921a", name = "Séances" }: { data: { name: string; value: number }[]; color?: string; name?: string }) {
-  const mounted = useMounted();
   const [hover, setHover] = useState<number | null>(null);
   if (data.length === 0) return null;
   const max = Math.max(...data.map((d) => d.value), 1);
@@ -441,10 +431,11 @@ export function MonthBars({ data, color = "#d2921a", name = "Séances" }: { data
               <span
                 className="absolute inset-x-0 bottom-0 rounded-t-lg"
                 style={{
-                  height: mounted ? `${(d.value / max) * 100}%` : "0%",
+                  height: `${(d.value / max) * 100}%`,
                   backgroundColor: color,
                   opacity: hover === null || hover === i ? 1 : 0.35,
-                  transition: `height 0.9s cubic-bezier(0.22,0.61,0.36,1) ${i * 70}ms, opacity 0.25s ease`,
+                  animation: `growUp 0.9s cubic-bezier(0.22,0.61,0.36,1) ${i * 70}ms both`,
+                  transition: "opacity 0.25s ease",
                 }}
               />
             </div>
@@ -461,7 +452,6 @@ export function MonthBars({ data, color = "#d2921a", name = "Séances" }: { data
 }
 
 export function Donut({ data }: { data: { name: string; value: number; color: string }[] }) {
-  const mounted = useMounted();
   const [hover, setHover] = useState<number | null>(null);
   const total = data.reduce((s, d) => s + d.value, 0);
   const R = 56;
@@ -482,8 +472,9 @@ export function Donut({ data }: { data: { name: string; value: number; color: st
               <circle
                 key={d.name} cx={70} cy={70} r={R} fill="none" stroke={d.color} strokeLinecap="round"
                 strokeWidth={hover === i ? 25 : 20}
-                strokeDasharray={`${mounted ? dash : 0} ${C}`} strokeDashoffset={offset}
-                className="cursor-pointer" style={{ transition: "stroke-dasharray 1s cubic-bezier(0.22,0.61,0.36,1), stroke-width 0.2s ease, opacity 0.2s ease", opacity: hover === null || hover === i ? 1 : 0.3 }}
+                strokeDasharray={`${dash} ${C}`} strokeDashoffset={offset}
+                className="cursor-pointer"
+                style={{ animation: `dashIn 1s cubic-bezier(0.22,0.61,0.36,1) ${i * 90}ms both`, transition: "stroke-width 0.2s ease, opacity 0.2s ease", opacity: hover === null || hover === i ? 1 : 0.3 }}
                 onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
               />
             );

@@ -11,26 +11,19 @@ const TYPES: SessionType[] = ["Lecture", "Compréhension", "Mathématiques", "É
 
 /* ------------------------- Modale création / édition séance ------------------------- */
 
+/* Le composant est monté uniquement à l'ouverture (par le parent) :
+   l'état initial est donc toujours propre, sans réinitialisation en cours de rendu. */
 export function SessionFormModal({ open, onClose, editing, presetDate }: { open: boolean; onClose: () => void; editing?: Session | null; presetDate?: string }) {
   const state = useApp();
   const me = state.currentUser!;
   const students = visibleStudents(state);
   const pros = state.users.filter((u) => u.role === "professional");
-  const [form, setForm] = useState({ studentId: "", professionalId: "", date: todayISO(), time: "15:00", duration: 45, type: "Lecture" as SessionType, objective: "" });
+  const [form, setForm] = useState(() =>
+    editing
+      ? { studentId: editing.studentId, professionalId: editing.professionalId, date: editing.date, time: editing.time, duration: editing.duration, type: editing.type, objective: editing.objective }
+      : { studentId: students[0]?.id ?? "", professionalId: me.role === "professional" ? me.id : pros[0]?.id ?? "", date: presetDate ?? todayISO(), time: "15:00", duration: 45, type: "Lecture" as SessionType, objective: "" }
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [init, setInit] = useState<string | null>(null);
-
-  const key = editing?.id ?? `new-${presetDate ?? ""}`;
-  if (open && init !== key) {
-    setInit(key);
-    setErrors({});
-    setForm(
-      editing
-        ? { studentId: editing.studentId, professionalId: editing.professionalId, date: editing.date, time: editing.time, duration: editing.duration, type: editing.type, objective: editing.objective }
-        : { studentId: students[0]?.id ?? "", professionalId: me.role === "professional" ? me.id : pros[0]?.id ?? "", date: presetDate ?? todayISO(), time: "15:00", duration: 45, type: "Lecture", objective: "" }
-    );
-  }
-  if (!open && init !== null) setInit(null);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,7 +301,9 @@ export function SessionsPage() {
         </div>
       )}
 
-      <SessionFormModal open={createOpen} onClose={() => setCreateOpen(false)} editing={editing} />
+      {createOpen && (
+        <SessionFormModal key={editing?.id ?? "nouvelle"} open onClose={() => setCreateOpen(false)} editing={editing} />
+      )}
       <ReportModal open={reportSession !== null} onClose={() => setReportSession(null)} session={reportSession} />
       <ReportViewModal open={viewReport !== null} onClose={() => setViewReport(null)} reportId={viewReport} />
     </div>
