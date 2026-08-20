@@ -50,6 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const logout = useApp((s) => s.logout);
   const notifications = useApp((s) => s.notifications);
   const markAllNotificationsRead = useApp((s) => s.markAllNotificationsRead);
+  const markNotificationRead = useApp((s) => s.markNotificationRead);
   const toast = useApp((s) => s.toast);
   const unreadNotifs = useApp(unreadNotifications);
   const unreadMsgs = useApp(unreadMessages);
@@ -229,19 +230,32 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <p className="px-4 py-10 text-center text-sm text-pine-500">Aucune notification pour le moment.</p>
               )}
               {myNotifs.map((n) => (
-                <div key={n.id} className={`flex gap-3 rounded-xl border p-3.5 transition-all ${n.read ? "border-pine-100 bg-white/60" : "border-pine-200 bg-white shadow-soft"}`}>
-                  <span className={`mt-0.5 shrink-0 rounded-lg p-2 ${n.kind === "success" ? "bg-pine-100 text-pine-700" : n.kind === "warning" ? "bg-marigold-100 text-marigold-700" : "bg-sea-100 text-sea-700"}`}>
-                    {n.kind === "success" ? <CheckCircle2 size={16} /> : n.kind === "warning" ? <AlertTriangle size={16} /> : <Info size={16} />}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[13px] font-bold text-pine-900">{n.title}</p>
-                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-marigold-500" />}
-                    </div>
-                    <p className="mt-0.5 text-xs leading-relaxed text-pine-600">{n.message}</p>
-                    <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wide text-pine-400">{fmtDateTime(n.createdAt)}</p>
-                  </div>
-                </div>
+                  <button
+                    key={n.id}
+                    onClick={() => {
+                      markNotificationRead(n.id);
+                      if (n.link) {
+                        setNotifOpen(false);
+                        navigate(n.link);
+                      }
+                    }}
+                    className={`flex w-full gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer hover:border-pine-300 hover:shadow-soft ${n.read ? "border-pine-100 bg-white/60" : "border-pine-200 bg-white shadow-soft"}`}
+                  >
+                    <span className={`mt-0.5 shrink-0 rounded-lg p-2 ${n.kind === "success" ? "bg-pine-100 text-pine-700" : n.kind === "warning" ? "bg-marigold-100 text-marigold-700" : "bg-sea-100 text-sea-700"}`}>
+                      {n.kind === "success" ? <CheckCircle2 size={16} /> : n.kind === "warning" ? <AlertTriangle size={16} /> : <Info size={16} />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="text-[13px] font-bold text-pine-900">{n.title}</span>
+                        {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-marigold-500" />}
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-pine-600">{n.message}</span>
+                      <span className="mt-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-pine-400">
+                        {fmtDateTime(n.createdAt)}
+                        {n.link && <span className="text-pine-600">Ouvrir →</span>}
+                      </span>
+                    </span>
+                  </button>
               ))}
             </div>
           </aside>

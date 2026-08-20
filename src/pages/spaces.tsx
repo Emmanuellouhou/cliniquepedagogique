@@ -181,7 +181,7 @@ export function ParentDashboard() {
             <p className="text-xs text-pine-300">{childResources.length} ressource{childResources.length > 1 ? "s" : ""} attribuée{childResources.length > 1 ? "s" : ""} à {child.firstName}</p>
             <div className="flex gap-2.5">
               <Link to="/dashboard/resources"><ButtonLink variant="marigold">Voir les ressources</ButtonLink></Link>
-              {pro && <Link to="/dashboard/messages"><ButtonLink variant="dark">Écrire à {pro.firstName}</ButtonLink></Link>}
+              {pro && <Link to={`/dashboard/messages?to=${pro.id}`}><ButtonLink variant="dark">Écrire à {pro.firstName}</ButtonLink></Link>}
             </div>
           </div>
         </div>

@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import {
   Users, UserCheck, Briefcase, HeartHandshake, CalendarCheck2, ClipboardList, TrendingUp,
-  UserPlus, ArrowRight, FileText, Target, AlertCircle, GraduationCap, BookOpen, PenLine, Star,
+  UserPlus, ArrowRight, FileText, Target, AlertCircle, GraduationCap, BookOpen, PenLine, Star, Download,
 } from "lucide-react";
 import { Avatar, Badge, Button, Card, Donut, EmptyState, MonthBars, ProgressBar, Reveal, Ring, StatCard, TrendArea } from "../components/ui";
 import { useApp, visibleStudents } from "../lib/store";
-import { DIFFICULTIES, GOAL_STATUSES, SESSION_TYPE_COLORS, fmtDate, fmtDateLong, fullName, studentProgress, todayISO, type Session } from "../lib/data";
+import { DIFFICULTIES, GOAL_STATUSES, SESSION_TYPE_COLORS, ageFrom, fmtDate, fmtDateFull, fmtDateLong, fullName, studentProgress, todayISO, type Session } from "../lib/data";
 
 function monthKey(iso: string) {
   return iso.slice(0, 7);
@@ -105,7 +105,31 @@ export function AdminDashboard() {
             <h2 className="mt-1 font-display text-2xl font-bold text-pine-950 sm:text-3xl">Bonjour, {state.currentUser?.firstName} 👋</h2>
             <p className="mt-1 text-sm text-pine-600">Voici l'activité de la clinique aujourd'hui, {fmtDateLong(today)}.</p>
           </div>
-          <div className="flex gap-2.5">
+          <div className="flex flex-wrap gap-2.5">
+            <Button variant="ghost" size="sm" onClick={() => {
+              const rows = [
+                ["Nom", "Prénom", "Âge", "Niveau", "Établissement", "Référent", "Statut", "Progression (%)", "Inscrit le"],
+                ...state.students.map((s) => {
+                  const pro = pros.find((p) => p.id === s.professionalId);
+                  return [
+                    s.lastName, s.firstName, String(ageFrom(s.birthDate)), s.schoolLevel, s.school,
+                    pro ? fullName(pro) : "Non attribué", s.status === "actif" ? "Actif" : s.status === "en_attente" ? "En attente" : "Suspendu",
+                    String(studentProgress(state.goals, s.id)), fmtDateFull(s.joinedAt),
+                  ];
+                }),
+              ];
+              const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(";")).join("\n");
+              const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `eleves-clinique-${today}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              state.toast("Export CSV des élèves téléchargé.", "success");
+            }}>
+              <Download size={15} /> Export CSV
+            </Button>
             <Link to="/dashboard/students"><Button variant="secondary" size="sm"><UserPlus size={15} /> Ajouter un élève</Button></Link>
             <Link to="/dashboard/calendar"><Button size="sm"><CalendarCheck2 size={15} /> Voir le calendrier</Button></Link>
           </div>

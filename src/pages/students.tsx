@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, UserPlus, Users, ArrowUpDown, Building2, Pencil, GraduationCap } from "lucide-react";
+import { Search, UserPlus, Users, Building2, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Avatar, Badge, Button, Card, EmptyState, Field, Modal, ProgressBar, Reveal, inputCls } from "../components/ui";
 import { useApp, visibleStudents } from "../lib/store";
 import { DIFFICULTIES, SCHOOL_LEVELS, fmtDate, fullName, studentProgress, todayISO, ageFrom, type Student, type StudentStatus } from "../lib/data";
@@ -22,6 +22,7 @@ export function StudentsPage() {
   const [sortBy, setSortBy] = useState<"name" | "progress" | "recent">("recent");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
+  const [toDelete, setToDelete] = useState<Student | null>(null);
 
   const pros = state.users.filter((u) => u.role === "professional");
   const parents = state.users.filter((u) => u.role === "parent");
@@ -151,9 +152,14 @@ export function StudentsPage() {
                         <td className="px-4 py-3.5 text-[12px] text-pine-600">{lastSession ? fmtDate(lastSession.date) : "—"}</td>
                         <td className="px-4 py-3.5 text-right">
                           {me.role === "admin" && (
-                            <button onClick={(e) => { e.stopPropagation(); setEditing(s); setModalOpen(true); }} aria-label={`Modifier ${fullName(s)}`} className="rounded-lg p-2 text-pine-500 opacity-0 transition-all hover:bg-pine-100 hover:text-pine-800 group-hover:opacity-100 cursor-pointer">
-                              <Pencil size={15} />
-                            </button>
+                            <span className="inline-flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              <button onClick={(e) => { e.stopPropagation(); setEditing(s); setModalOpen(true); }} aria-label={`Modifier ${fullName(s)}`} className="rounded-lg p-2 text-pine-500 transition-all hover:bg-pine-100 hover:text-pine-800 cursor-pointer">
+                                <Pencil size={15} />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); setToDelete(s); }} aria-label={`Supprimer ${fullName(s)}`} className="rounded-lg p-2 text-pine-500 transition-all hover:bg-coral-50 hover:text-coral-600 cursor-pointer">
+                                <Trash2 size={15} />
+                              </button>
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -198,12 +204,48 @@ export function StudentsPage() {
       {modalOpen && (
         <StudentFormModal key={editing?.id ?? "nouveau"} open onClose={() => setModalOpen(false)} editing={editing} pros={pros} parents={parents} />
       )}
+      {toDelete && <DeleteStudentModal student={toDelete} onClose={() => setToDelete(null)} />}
     </div>
   );
 }
 
+function DeleteStudentModal({ student, onClose }: { student: Student; onClose: () => void }) {
+  const state = useApp();
+  const navigate = useNavigate();
+  const sessionIds = state.sessions.filter((s) => s.studentId === student.id).map((s) => s.id);
+  const counts = {
+    seances: sessionIds.length,
+    rapports: state.reports.filter((r) => sessionIds.includes(r.sessionId)).length,
+    objectifs: state.goals.filter((g) => g.studentId === student.id).length,
+    evaluations: state.evaluations.filter((e) => e.studentId === student.id).length,
+  };
+  const total = counts.seances + counts.rapports + counts.objectifs + counts.evaluations;
+  return (
+    <Modal open onClose={onClose} title="Supprimer le dossier élève">
+      <div className="flex items-start gap-3 rounded-xl border border-coral-200 bg-coral-50 p-4">
+        <AlertTriangle size={19} className="mt-0.5 shrink-0 text-coral-600" />
+        <p className="text-[13px] leading-relaxed text-pine-800">
+          Vous êtes sur le point de supprimer définitivement le dossier de <strong>{fullName(student)}</strong>.
+          {total > 0 ? (
+            <> Seront également supprimés : <strong>{counts.objectifs}</strong> objectif{counts.objectifs > 1 ? "s" : ""}, <strong>{counts.seances}</strong> séance{counts.seances > 1 ? "s" : ""}, <strong>{counts.rapports}</strong> compte{counts.rapports > 1 ? "s" : ""} rendu{counts.rapports > 1 ? "s" : ""} et <strong>{counts.evaluations}</strong> évaluation{counts.evaluations > 1 ? "s" : ""}.</>
+          ) : (
+            <> Ce dossier ne contient aucune donnée associée.</>
+          )}
+        </p>
+      </div>
+      <p className="mt-3 text-xs text-pine-500">Cette action est irréversible. Les ressources attribuées seront simplement détachées de l'élève.</p>
+      <div className="mt-5 flex justify-end gap-3 border-t border-pine-100 pt-4">
+        <Button variant="ghost" onClick={onClose}>Annuler</Button>
+        <Button variant="danger" onClick={() => { state.deleteStudent(student.id); onClose(); navigate("/dashboard/students"); }}>
+          <Trash2 size={14} /> Supprimer définitivement
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
 /* Montée uniquement à l'ouverture (par le parent) : état initial toujours propre. */
-function StudentFormModal({ open, onClose, editing, pros, parents }: {
+export function StudentFormModal({ open, onClose, editing, pros, parents }: {
   open: boolean; onClose: () => void; editing: Student | null;
   pros: { id: string; firstName: string; lastName: string }[];
   parents: { id: string; firstName: string; lastName: string }[];

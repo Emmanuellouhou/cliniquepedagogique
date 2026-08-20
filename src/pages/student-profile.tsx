@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft, Building2, Cake, GraduationCap, HeartHandshake, UserCheck, FileText, Target,
-  TrendingUp, ClipboardList, Plus, CalendarPlus, PenLine, Eye, Award, BookOpen, Sparkles,
+  TrendingUp, ClipboardList, Plus, CalendarPlus, PenLine, Eye, Award, BookOpen, Sparkles, Pencil, Trash2, X,
 } from "lucide-react";
 import { Avatar, Badge, Button, Card, EmptyState, Field, Modal, ProgressBar, Reveal, Ring, Tabs, TrendArea, inputCls } from "../components/ui";
 import { useApp } from "../lib/store";
@@ -11,7 +11,7 @@ import {
   ageFrom, fmtDate, fmtDateFull, fmtDateLong, fullName, studentProgress, todayISO,
   type Goal, type GoalStatus,
 } from "../lib/data";
-import { STATUS_META } from "./students";
+import { STATUS_META, StudentFormModal } from "./students";
 import { SessionFormModal, ReportModal, ReportViewModal } from "./sessions";
 import { ReportPreview, buildReport } from "./modules";
 
@@ -26,6 +26,7 @@ export function StudentProfilePage() {
   const [reportSession, setReportSession] = useState<string | null>(null);
   const [viewReport, setViewReport] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const canEdit = me.role === "admin" || (me.role === "professional" && student?.professionalId === me.id);
 
@@ -101,6 +102,9 @@ export function StudentProfilePage() {
               <Button size="sm" onClick={() => setSessionModal(true)}><CalendarPlus size={14} /> Programmer une séance</Button>
               <Button size="sm" variant="secondary" onClick={() => setGoalModal(true)}><Plus size={14} /> Nouvel objectif</Button>
               <Button size="sm" variant="secondary" onClick={() => setReportOpen(true)}><FileText size={14} /> Générer un rapport</Button>
+              {me.role === "admin" && (
+                <Button size="sm" variant="ghost" onClick={() => setEditOpen(true)}><Pencil size={14} /> Modifier le dossier</Button>
+              )}
             </div>
           )}
         </Card>
@@ -357,6 +361,15 @@ export function StudentProfilePage() {
       )}
 
       {/* Modales */}
+      {editOpen && (
+        <StudentFormModal
+          open
+          onClose={() => setEditOpen(false)}
+          editing={student}
+          pros={state.users.filter((u) => u.role === "professional")}
+          parents={state.users.filter((u) => u.role === "parent")}
+        />
+      )}
       <GoalFormModal open={goalModal} onClose={() => setGoalModal(false)} studentId={student.id} professionalId={student.professionalId} />
       <SessionFormModal open={sessionModal} onClose={() => setSessionModal(false)} presetDate={todayISO()} />
       <ReportModal open={reportSession !== null} onClose={() => setReportSession(null)} session={reportSessionObj} />
@@ -374,6 +387,7 @@ function GoalCard({ goal, canEdit, delay }: { goal: Goal; canEdit: boolean; dela
   const state = useApp();
   const pro = state.users.find((u) => u.id === goal.professionalId);
   const st = GOAL_STATUSES[goal.status];
+  const [confirming, setConfirming] = useState(false);
   return (
     <Reveal delay={delay}>
       <Card className="p-6">
@@ -383,7 +397,22 @@ function GoalCard({ goal, canEdit, delay }: { goal: Goal; canEdit: boolean; dela
             <h3 className="mt-1 font-display text-lg font-bold text-pine-950">{goal.title}</h3>
             <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-pine-600">{goal.description}</p>
           </div>
-          <Badge bg={st.bg} fg={st.fg}>{st.label}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge bg={st.bg} fg={st.fg}>{st.label}</Badge>
+            {canEdit && (
+              confirming ? (
+                <span className="flex items-center gap-1.5 rounded-lg border border-coral-200 bg-coral-50 px-2 py-1.5">
+                  <span className="text-[11px] font-bold text-coral-700">Supprimer ?</span>
+                  <button onClick={() => state.deleteGoal(goal.id)} aria-label="Confirmer la suppression" className="rounded-md bg-coral-600 p-1 text-paper transition-colors hover:bg-coral-700 cursor-pointer"><Trash2 size={12} /></button>
+                  <button onClick={() => setConfirming(false)} aria-label="Annuler" className="rounded-md bg-white p-1 text-pine-500 transition-colors hover:text-pine-800 cursor-pointer"><X size={12} /></button>
+                </span>
+              ) : (
+                <button onClick={() => { setConfirming(true); setTimeout(() => setConfirming(false), 4000); }} aria-label={`Supprimer l'objectif ${goal.title}`} className="rounded-lg p-1.5 text-pine-300 transition-colors hover:bg-coral-50 hover:text-coral-600 cursor-pointer">
+                  <Trash2 size={15} />
+                </button>
+              )
+            )}
+          </div>
         </div>
         <div className="mt-4 flex items-center gap-3">
           <div className="flex-1"><ProgressBar value={goal.progress} height={9} color={goal.status === "atteint" ? "#37856d" : "#d2921a"} /></div>

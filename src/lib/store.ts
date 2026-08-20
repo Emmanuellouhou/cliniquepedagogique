@@ -169,7 +169,7 @@ export const useApp = create<AppState>()(
         const student: Student = { ...s, id: uid(), joinedAt: addDaysISO(0) };
         set((st) => ({
           students: [...st.students, student],
-          notifications: notify(st, s.parentId, "Dossier créé", `Le dossier de ${student.firstName} a été créé par la clinique.`, "info"),
+          notifications: notify(st, s.parentId, "Dossier créé", `Le dossier de ${student.firstName} a été créé par la clinique.`, "info", `/dashboard/students/${student.id}`),
         }));
         get().toast(`${student.firstName} ${student.lastName} a été ajouté(e).`, "success");
         return student;
@@ -203,7 +203,8 @@ export const useApp = create<AppState>()(
             s.students.find((st) => st.id === g.studentId)?.parentId ?? "",
             "Nouvel objectif pédagogique",
             `Un nouvel objectif a été ajouté : « ${g.title} ».`,
-            "info"
+            "info",
+            `/dashboard/students/${g.studentId}`
           ),
         }));
         get().toast("Objectif créé.", "success");
@@ -226,7 +227,8 @@ export const useApp = create<AppState>()(
             s.students.find((st) => st.id === se.studentId)?.parentId ?? "",
             "Séance programmée",
             `Une séance de ${se.type.toLowerCase()} est programmée le ${se.date.slice(8, 10)}/${se.date.slice(5, 7)} à ${se.time}.`,
-            "info"
+            "info",
+            "/dashboard/calendar"
           ),
         }));
         get().toast("Séance programmée.", "success");
@@ -261,7 +263,7 @@ export const useApp = create<AppState>()(
             reports: [...s.reports, report],
             sessions: s.sessions.map((se) => (se.id === sessionId ? { ...se, status: "realisee" as SessionStatus, reportId: report.id } : se)),
             notifications: student
-              ? notify(s, student.parentId, "Nouveau compte rendu", `Un nouveau compte rendu est disponible pour ${student.firstName}.`, "success")
+              ? notify(s, student.parentId, "Nouveau compte rendu", `Un nouveau compte rendu est disponible pour ${student.firstName}.`, "success", `/dashboard/students/${student.id}`)
               : s.notifications,
           };
         });
@@ -291,7 +293,8 @@ export const useApp = create<AppState>()(
               student.parentId,
               "Nouvelle ressource",
               `Une nouvelle ressource a été attribuée à ${student.firstName} : « ${resource?.title ?? ""} ».`,
-              "info"
+              "info",
+              "/dashboard/resources"
             );
             const studentUser = s.users.find((u) => u.studentId === stId);
             if (studentUser) {
@@ -300,7 +303,8 @@ export const useApp = create<AppState>()(
                 studentUser.id,
                 "Nouvelle activité",
                 `Une nouvelle activité t'attend : ${resource?.title ?? ""}.`,
-                "success"
+                "success",
+                "/dashboard"
               );
             }
           });
@@ -317,7 +321,7 @@ export const useApp = create<AppState>()(
         const msg: Message = { id: uid(), senderId, receiverId, content, attachment, createdAt: new Date().toISOString(), read: false };
         set((s) => ({
           messages: [...s.messages, msg],
-          notifications: notify(s, receiverId, "Nouveau message", content.length > 80 ? content.slice(0, 80) + "…" : content, "info"),
+          notifications: notify(s, receiverId, "Nouveau message", content.length > 80 ? content.slice(0, 80) + "…" : content, "info", "/dashboard/messages"),
         }));
       },
       markThreadRead: (meId, otherId) => {
@@ -330,6 +334,11 @@ export const useApp = create<AppState>()(
       markAllNotificationsRead: (userId) => {
         set((s) => ({
           notifications: s.notifications.map((n) => (n.userId === userId ? { ...n, read: true } : n)),
+        }));
+      },
+      markNotificationRead: (id) => {
+        set((s) => ({
+          notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
         }));
       },
 
