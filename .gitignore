@@ -1,5 +1,26 @@
+# Dépendances
 node_modules/
-.next/
+
+# Build de production
 dist/
-build/
+
+# Logs
 *.log
+npm-debug.log*
+
+# Variables d'environnement locales
+.env
+.env.local
+.env.*.local
+
+# Fichiers système / éditeurs
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+Thumbs.db
+
+# Cache
+*.tsbuildinfo
+.next/
+build/
