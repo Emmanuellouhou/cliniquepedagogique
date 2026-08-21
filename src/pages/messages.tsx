@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, MessageSquare, Paperclip, Send } from "lucide-react";
 import { Avatar, Badge, Card, EmptyState, Reveal } from "../components/ui";
 import { useApp } from "../lib/store";
@@ -15,7 +16,8 @@ const ROLE_LABEL: Record<string, string> = {
 export function MessagesPage() {
   const state = useApp();
   const me = state.currentUser!;
-  const [selected, setSelected] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selected, setSelected] = useState<string | null>(() => searchParams.get("to"));
   const [draft, setDraft] = useState("");
   const [attach, setAttach] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);

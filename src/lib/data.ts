@@ -135,6 +135,7 @@ export interface AppNotification {
   title: string;
   message: string;
   kind: "info" | "success" | "warning";
+  link?: string; // route interne ouverte au clic
   read: boolean;
   createdAt: string;
 }
@@ -404,15 +405,15 @@ const messages: Message[] = [
 ];
 
 const notifications: AppNotification[] = [
-  { id: "no-1", userId: "u-parent", title: "Séance demain", message: "Votre enfant a une séance demain à 15h00.", kind: "info", read: false, createdAt: new Date(addDaysISO(-1) + "T18:00:00").toISOString() },
-  { id: "no-2", userId: "u-parent", title: "Nouveau compte rendu", message: "Un nouveau compte rendu est disponible pour Emma.", kind: "success", read: false, createdAt: new Date(addDaysISO(-3) + "T18:35:00").toISOString() },
-  { id: "no-3", userId: "u-parent", title: "Nouvelle ressource", message: "Une nouvelle ressource a été attribuée à Emma : tableau de suivi de lecture.", kind: "info", read: true, createdAt: new Date(addDaysISO(-8) + "T10:00:00").toISOString() },
-  { id: "no-4", userId: "u-pro1", title: "Bilan à programmer", message: "Chloé Martin attend un bilan initial de lecture.", kind: "warning", read: false, createdAt: new Date(addDaysISO(-2) + "T10:25:00").toISOString() },
-  { id: "no-5", userId: "u-pro1", title: "Nouvel objectif atteint", message: "Emma a atteint son objectif « Gagner en confiance à l'oral ». Bravo !", kind: "success", read: true, createdAt: new Date(addDaysISO(-20) + "T17:00:00").toISOString() },
-  { id: "no-6", userId: "u-admin", title: "Nouvel élève", message: "L'inscription de Chloé Martin est en attente de validation.", kind: "info", read: false, createdAt: new Date(addDaysISO(-6) + "T09:30:00").toISOString() },
-  { id: "no-7", userId: "u-admin", title: "Séances du jour", message: "Une séance est programmée aujourd'hui avec Emma à 15h00.", kind: "info", read: false, createdAt: new Date(addDaysISO(0) + "T08:00:00").toISOString() },
-  { id: "no-8", userId: "u-eleve", title: "Nouvelle activité", message: "Une nouvelle activité t'attend : Le jeu du détective de texte.", kind: "success", read: false, createdAt: new Date(addDaysISO(-1) + "T17:30:00").toISOString() },
-  { id: "no-9", userId: "u-eleve", title: "Bravo Emma !", message: "Tu as atteint ton objectif « Gagner en confiance à l'oral ».", kind: "success", read: true, createdAt: new Date(addDaysISO(-20) + "T17:05:00").toISOString() },
+  { id: "no-1", userId: "u-parent", title: "Séance demain", message: "Votre enfant a une séance demain à 15h00.", kind: "info", link: "/dashboard/calendar", read: false, createdAt: new Date(addDaysISO(-1) + "T18:00:00").toISOString() },
+  { id: "no-2", userId: "u-parent", title: "Nouveau compte rendu", message: "Un nouveau compte rendu est disponible pour Emma.", kind: "success", link: "/dashboard/students/st-emma", read: false, createdAt: new Date(addDaysISO(-3) + "T18:35:00").toISOString() },
+  { id: "no-3", userId: "u-parent", title: "Nouvelle ressource", message: "Une nouvelle ressource a été attribuée à Emma : tableau de suivi de lecture.", kind: "info", link: "/dashboard/resources", read: true, createdAt: new Date(addDaysISO(-8) + "T10:00:00").toISOString() },
+  { id: "no-4", userId: "u-pro1", title: "Bilan à programmer", message: "Chloé Martin attend un bilan initial de lecture.", kind: "warning", link: "/dashboard/students/st-chloe", read: false, createdAt: new Date(addDaysISO(-2) + "T10:25:00").toISOString() },
+  { id: "no-5", userId: "u-pro1", title: "Nouvel objectif atteint", message: "Emma a atteint son objectif « Gagner en confiance à l'oral ». Bravo !", kind: "success", link: "/dashboard/students/st-emma", read: true, createdAt: new Date(addDaysISO(-20) + "T17:00:00").toISOString() },
+  { id: "no-6", userId: "u-admin", title: "Nouvel élève", message: "L'inscription de Chloé Martin est en attente de validation.", kind: "info", link: "/dashboard/students", read: false, createdAt: new Date(addDaysISO(-6) + "T09:30:00").toISOString() },
+  { id: "no-7", userId: "u-admin", title: "Séances du jour", message: "Une séance est programmée aujourd'hui avec Emma à 15h00.", kind: "info", link: "/dashboard/calendar", read: false, createdAt: new Date(addDaysISO(0) + "T08:00:00").toISOString() },
+  { id: "no-8", userId: "u-eleve", title: "Nouvelle activité", message: "Une nouvelle activité t'attend : Le jeu du détective de texte.", kind: "success", link: "/dashboard", read: false, createdAt: new Date(addDaysISO(-1) + "T17:30:00").toISOString() },
+  { id: "no-9", userId: "u-eleve", title: "Bravo Emma !", message: "Tu as atteint ton objectif « Gagner en confiance à l'oral ».", kind: "success", link: "/dashboard", read: true, createdAt: new Date(addDaysISO(-20) + "T17:05:00").toISOString() },
 ];
 
 /* ------------------------------- Seed global ------------------------------- */
