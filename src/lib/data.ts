@@ -250,6 +250,12 @@ export const SCHOOL_LEVELS = ["CP", "CE1", "CE2", "CM1", "CM2", "6e", "5e", "4e"
 export const IMAGES = {
   hero: "https://image.qwenlm.ai/generated-images/ac12f8c6-692d-4a6e-83e2-fb31cd731c5d/_result.png",
   group: "https://image.qwenlm.ai/generated-images/5f793a33-5efd-4bc9-966a-7afa491a0962/_result.png",
+  team: "https://image.qwenlm.ai/generated-images/ef42347c-12eb-4230-a2f8-12a8d26fcd83/_result.png",
+  famille: "https://image.qwenlm.ai/generated-images/d8146e06-faa7-47bd-93a0-1485db91e757/_result.png",
+  seance: "https://image.qwenlm.ai/generated-images/51e913cf-ae42-4322-980c-aa35fe6b6062/_result.png",
+  ressources: "https://image.qwenlm.ai/generated-images/8915678c-9fe2-4d13-9afd-b5df150cbf93/_result.png",
+  accueil: "https://image.qwenlm.ai/generated-images/9610eaab-8f84-4cae-8322-b48c4c3bf9d2/_result.png",
+  reussite: "https://image.qwenlm.ai/generated-images/d8292d07-0a41-4be7-bdf0-f0355fad603c/_result.png",
 };
 
 /* ------------------------------ Données démo ------------------------------ */

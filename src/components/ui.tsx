@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X, CheckCircle2, Info, AlertCircle } from "lucide-react";
+import { X, CheckCircle2, Info, AlertCircle, RotateCcw } from "lucide-react";
 import { useApp } from "../lib/store";
 
 /* ------------------------------- Logo ------------------------------- */
@@ -498,6 +498,221 @@ export function Donut({ data }: { data: { name: string; value: number; color: st
         ))}
       </ul>
     </div>
+  );
+}
+
+/* ------------------------------- Image vivante & titres ------------------------------- */
+
+export function KenBurns({ src, alt, className = "", ratio = "4 / 3" }: { src: string; alt: string; className?: string; ratio?: string }) {
+  return (
+    <div className={`overflow-hidden ${className}`} style={{ aspectRatio: ratio }}>
+      <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover animate-kenburns" />
+    </div>
+  );
+}
+
+export function SectionTitle({ kicker, title, text, align = "center", dark = false }: { kicker: string; title: ReactNode; text?: ReactNode; align?: "center" | "left"; dark?: boolean }) {
+  const centered = align === "center";
+  return (
+    <Reveal className={centered ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
+      <p className={`text-xs font-bold uppercase tracking-[0.2em] ${dark ? "text-marigold-300" : "text-marigold-600"}`}>{kicker}</p>
+      <h2 className={`mt-2.5 font-display text-3xl font-bold leading-tight sm:text-[2.6rem] ${dark ? "text-paper" : "text-pine-950"}`}>{title}</h2>
+      <span className={`mt-4 inline-block h-1 w-16 rounded-full bg-marigold-400 ${centered ? "" : ""}`} />
+      {text && <p className={`mt-4 text-[15px] leading-relaxed ${dark ? "text-pine-100/80" : "text-pine-600"}`}>{text}</p>}
+    </Reveal>
+  );
+}
+
+/* ------------------------------- Démo cinématique (façon vidéo) ------------------------------- */
+
+const SCENES = [
+  { title: "Bilan initial", caption: "Chaque élève démarre par une évaluation complète de ses besoins." },
+  { title: "Parcours personnalisé", caption: "Des objectifs clairs, adaptés au rythme de l'enfant." },
+  { title: "Séances planifiées", caption: "Un calendrier lisible pour l'élève, la famille et le pédagogue." },
+  { title: "Progrès mesurés", caption: "Chaque compétence progresse, séance après séance." },
+  { title: "Famille informée", caption: "Les parents suivent chaque étape en temps réel." },
+];
+const SCENE_DUR = 4;
+const TOTAL_DUR = SCENES.length * SCENE_DUR;
+
+function SceneStage({ index }: { index: number }) {
+  return (
+    <div key={index} className="absolute inset-0 flex flex-col items-center justify-center px-6">
+      {index === 0 && (
+        <div className="anim-up w-[290px] rounded-2xl bg-white/95 p-4 text-left shadow-lift">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-marigold-200 font-display text-lg font-bold text-marigold-800">E</span>
+            <div>
+              <p className="text-sm font-bold text-pine-900">Emma, 9 ans</p>
+              <p className="text-[11px] text-pine-500">CM1 · Brazzaville</p>
+            </div>
+          </div>
+          <div className="mt-3.5 flex flex-wrap gap-1.5">
+            {["Lecture", "Concentration", "Confiance"].map((t, i) => (
+              <span key={t} className="anim-pop rounded-full bg-pine-100 px-2.5 py-1 text-[10px] font-semibold text-pine-700" style={{ animationDelay: `${0.35 + i * 0.16}s` }}>{t}</span>
+            ))}
+          </div>
+        </div>
+      )}
+      {index === 1 && (
+        <div className="anim-up w-[290px] space-y-3 rounded-2xl bg-white/95 p-4 text-left shadow-lift">
+          {[{ t: "Compréhension écrite", p: 65, d: "0.2s" }, { t: "Concentration", p: 75, d: "0.45s" }, { t: "Confiance en soi", p: 50, d: "0.7s" }].map((g) => (
+            <div key={g.t}>
+              <div className="flex items-center justify-between text-[11px] font-semibold text-pine-700">
+                <span>{g.t}</span><span>{g.p} %</span>
+              </div>
+              <div className="mt-1 h-2 overflow-hidden rounded-full bg-pine-100">
+                <div className="anim-bar h-full rounded-full bg-pine-600" style={{ width: `${g.p}%`, animationDelay: g.d }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {index === 2 && (
+        <div className="anim-up w-[290px] rounded-2xl bg-white/95 p-4 text-left shadow-lift">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-pine-500">Semaine · Séances</p>
+          <div className="mt-2.5 grid grid-cols-5 gap-1.5">
+            {Array.from({ length: 10 }).map((_, i) => {
+              const hot = i === 1 || i === 4 || i === 7;
+              return <span key={i} className={hot ? "anim-pop h-9 rounded-lg bg-marigold-300" : "h-9 rounded-lg bg-pine-50"} style={hot ? { animationDelay: `${0.2 + i * 0.08}s` } : undefined} />;
+            })}
+          </div>
+        </div>
+      )}
+      {index === 3 && (
+        <svg viewBox="0 0 260 120" className="anim-up w-[290px]">
+          <path d="M10 100 L60 88 L110 92 L160 62 L210 40 L250 22" fill="none" stroke="#f1d997" strokeWidth="4" strokeLinecap="round" className="anim-draw" />
+          {[[10, 100], [60, 88], [110, 92], [160, 62], [210, 40], [250, 22]].map(([x, y], i) => (
+            <circle key={i} cx={x} cy={y} r="5" fill="#1f6c57" className="anim-pop" style={{ animationDelay: `${0.3 + i * 0.15}s` }} />
+          ))}
+        </svg>
+      )}
+      {index === 4 && (
+        <div className="w-[290px] space-y-2.5">
+          {[{ t: "Nouveau compte rendu", m: "La séance d'Emma est en ligne.", d: "0.15s" }, { t: "Prochaine séance", m: "Jeudi à 15 h 00.", d: "0.45s" }].map((n) => (
+            <div key={n.t} className="anim-notif flex items-start gap-2.5 rounded-xl bg-white/95 p-3 text-left shadow-lift" style={{ animationDelay: n.d }}>
+              <span className="mt-0.5 rounded-lg bg-pine-100 p-1.5 text-pine-700"><CheckCircle2 size={14} /></span>
+              <div>
+                <p className="text-[12px] font-bold text-pine-900">{n.t}</p>
+                <p className="text-[11px] text-pine-500">{n.m}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function VideoShowcase() {
+  const [playing, setPlaying] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const ended = elapsed >= TOTAL_DUR;
+
+  useEffect(() => {
+    if (!playing) return;
+    let last = performance.now();
+    let id = 0;
+    const tick = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      setElapsed((e) => Math.min(TOTAL_DUR, e + dt));
+      id = requestAnimationFrame(tick);
+    };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [playing]);
+
+  useEffect(() => {
+    if (ended && playing) setPlaying(false);
+  }, [ended, playing]);
+
+  const sceneIndex = Math.min(SCENES.length - 1, Math.floor(elapsed / SCENE_DUR));
+  const started = elapsed > 0;
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+  const toggle = () => {
+    if (ended) {
+      setElapsed(0);
+      setPlaying(true);
+      return;
+    }
+    setPlaying((p) => !p);
+  };
+  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const rel = (e.clientX - rect.left) / rect.width;
+    setElapsed(Math.max(0, Math.min(TOTAL_DUR, rel * TOTAL_DUR)));
+  };
+
+  return (
+    <Reveal>
+      <div className="mx-auto max-w-3xl overflow-hidden rounded-[26px] border border-pine-800 bg-pine-950 shadow-lift">
+        <div className="flex items-center gap-2 border-b border-pine-800/70 px-5 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-coral-500/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-marigold-400/80" />
+          <span className="h-2.5 w-2.5 rounded-full bg-pine-400/80" />
+          <p className="ml-2 truncate text-[11px] font-semibold uppercase tracking-wider text-pine-200/70">La plateforme en 20 secondes</p>
+        </div>
+
+        <div className="bg-dots relative aspect-[16/9] overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgb(31_108_87/0.35),transparent_60%)]" aria-hidden="true" />
+          {started && !ended ? (
+            <SceneStage index={sceneIndex} />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+              <p className="font-display text-xl font-bold text-paper sm:text-2xl">{ended ? "Merci d'avoir regardé" : "Découvrez le parcours d'un élève"}</p>
+              <p className="mt-1.5 max-w-sm text-[13px] text-pine-100/70">{ended ? "Rejouez la démonstration ou explorez la plateforme." : "Du bilan initial au suivi familial, en cinq étapes."}</p>
+            </div>
+          )}
+
+          {started && !ended && (
+            <div className="anim-up pointer-events-none absolute bottom-4 left-1/2 w-[min(88%,360px)] -translate-x-1/2 rounded-xl bg-pine-950/70 px-4 py-2.5 text-center backdrop-blur">
+              <p key={sceneIndex} className="anim-pop text-[13px] font-bold text-paper">{SCENES[sceneIndex].title}</p>
+              <p className="mt-0.5 text-[11px] text-pine-100/75">{SCENES[sceneIndex].caption}</p>
+            </div>
+          )}
+
+          <button
+            onClick={toggle}
+            aria-label={playing ? "Mettre en pause" : ended ? "Rejouer la démonstration" : "Lancer la démonstration"}
+            className="absolute inset-0 m-auto flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-marigold-400 text-pine-950 shadow-lift transition-transform hover:scale-110 active:scale-95"
+          >
+            {playing ? (
+              <span className="flex gap-1.5"><span className="h-5 w-1.5 rounded-sm bg-pine-950" /><span className="h-5 w-1.5 rounded-sm bg-pine-950" /></span>
+            ) : ended ? (
+              <RotateCcw size={22} />
+            ) : (
+              <span className="ml-1 h-0 w-0 border-y-[11px] border-l-[18px] border-y-transparent border-l-pine-950" />
+            )}
+          </button>
+        </div>
+
+        <div className="space-y-2.5 border-t border-pine-800/70 px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <span className="w-10 shrink-0 text-[11px] font-semibold tabular-nums text-pine-200/80">{fmt(elapsed)}</span>
+            <div onClick={seek} className="group relative h-1.5 flex-1 cursor-pointer rounded-full bg-pine-800">
+              <div className="absolute inset-y-0 left-0 rounded-full bg-marigold-400" style={{ width: `${(elapsed / TOTAL_DUR) * 100}%` }} />
+              {SCENES.map((_, i) => (
+                <span key={i} className="absolute top-1/2 h-2.5 w-0.5 -translate-y-1/2 rounded bg-pine-600" style={{ left: `${((i + 1) / SCENES.length) * 100}%` }} />
+              ))}
+            </div>
+            <span className="w-10 shrink-0 text-right text-[11px] font-semibold tabular-nums text-pine-200/50">{fmt(TOTAL_DUR)}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {SCENES.map((s, i) => (
+              <button
+                key={s.title}
+                onClick={() => { setElapsed(i * SCENE_DUR); setPlaying(true); }}
+                className={`cursor-pointer rounded-full px-3 py-1 text-[10px] font-bold transition-colors ${i === sceneIndex && started ? "bg-marigold-400 text-pine-950" : "bg-pine-800/70 text-pine-200/70 hover:bg-pine-700 hover:text-paper"}`}
+              >
+                {i + 1}. {s.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Reveal>
   );
 }
 
