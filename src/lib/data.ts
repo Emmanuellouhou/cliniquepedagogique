@@ -248,8 +248,8 @@ export const RESOURCE_CATEGORIES: ResourceCategory[] = [
 export const SCHOOL_LEVELS = ["CP", "CE1", "CE2", "CM1", "CM2", "6e", "5e", "4e", "3e"];
 
 export const IMAGES = {
-  hero: "https://image.qwenlm.ai/generated-images/97e639aa-79b1-4f7e-a843-3015afcb6135/_result.png",
-  group: "https://image.qwenlm.ai/generated-images/7dbac225-88db-452a-88c6-a263f568454d/_result.png",
+  hero: "https://image.qwenlm.ai/generated-images/ac12f8c6-692d-4a6e-83e2-fb31cd731c5d/_result.png",
+  group: "https://image.qwenlm.ai/generated-images/5f793a33-5efd-4bc9-966a-7afa491a0962/_result.png",
 };
 
 /* ------------------------------ Données démo ------------------------------ */
