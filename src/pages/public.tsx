@@ -281,7 +281,7 @@ export function HomePage() {
                 <div className="absolute -left-6 -top-6 hidden h-full w-full rounded-[30px] border-2 border-dashed border-pine-300 sm:block" aria-hidden="true" />
                 <img
                   src={IMAGES.hero}
-                  alt="Une pédagogue accompagne une élève dans un atelier lumineux"
+                  alt="Une pédagogue congolaise accompagne une élève dans un atelier lumineux à Brazzaville"
                   className="relative w-full rounded-[30px] object-cover shadow-lift"
                   style={{ aspectRatio: "5/4" }}
                 />
@@ -386,7 +386,7 @@ export function HomePage() {
           </div>
           <Reveal delay={150} className="relative">
             <div className="sticky top-28">
-              <img src={IMAGES.group} alt="Un petit groupe d'élèves travaille ensemble avec un mentor" className="w-full rounded-[28px] object-cover shadow-lift" style={{ aspectRatio: "4/3.3" }} />
+              <img src={IMAGES.group} alt="Un petit groupe d'élèves africains travaille ensemble avec un mentor" className="w-full rounded-[28px] object-cover shadow-lift" style={{ aspectRatio: "4/3.3" }} />
               <figure className="absolute -bottom-7 left-5 right-5 rounded-2xl border border-pine-100 bg-white/95 p-5 shadow-lift backdrop-blur">
                 <blockquote className="text-[13px] italic leading-relaxed text-pine-800">
                   « Un élève ne progresse jamais aussi bien que lorsqu'il se sait attendu, compris et encouragé. »
