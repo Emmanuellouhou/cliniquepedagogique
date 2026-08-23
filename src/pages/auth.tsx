@@ -56,6 +56,7 @@ const DEMO_ACCOUNTS: { role: Role; label: string; desc: string; color: string; e
   { role: "professional", label: "Professionnel", desc: "Élèves, séances, comptes rendus", color: "#3f6577", email: "k.haddad@clinique-education.fr" },
   { role: "parent", label: "Parent", desc: "Suivi de votre enfant", color: "#b37413", email: "claire.moreau@email.fr" },
   { role: "student", label: "Élève", desc: "Espace simple et motivant", color: "#de7257", email: "emma@clinique-education.fr" },
+  { role: "teacher", label: "Enseignant", desc: "Suivi des élèves de l'école (lecture)", color: "#5ca28a", email: "j.perrin@ac-paris.fr" },
 ];
 
 export function LoginPage() {

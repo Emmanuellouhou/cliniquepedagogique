@@ -85,6 +85,38 @@
   0% { transform: scale(1); opacity: 0.7; }
   75%, 100% { transform: scale(2.2); opacity: 0; }
 }
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.09) translate(1.6%, -1.6%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+@keyframes sceneUp {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scenePop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes sceneBar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes sceneDraw {
+  from { stroke-dashoffset: 300; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes sceneNotif {
+  from { opacity: 0; transform: translateX(34px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-kenburns { animation: kenburns 18s ease-in-out infinite; will-change: transform; }
+.anim-up { animation: sceneUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.anim-pop { animation: scenePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.anim-bar { transform-origin: left; animation: sceneBar 1s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.anim-draw { stroke-dasharray: 300; animation: sceneDraw 1.6s ease both; }
+.anim-notif { animation: sceneNotif 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
 
 /* Animations de graphiques (aucun effet JS nécessaire) */
 @keyframes drawLine {

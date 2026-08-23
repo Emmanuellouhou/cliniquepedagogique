@@ -14,7 +14,7 @@ import type {
   Toast,
   User,
 } from "./data";
-import { addDaysISO, buildSeed, uid } from "./data";
+import { addDaysISO, buildSeed, fmtDate, uid } from "./data";
 
 /* ------------------------------------------------------------------ */
 /*  Store applicatif — architecture prête pour Supabase :              */
@@ -105,7 +105,6 @@ export const useApp = create<AppState>()(
         const user = get().users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
         if (!user) return { ok: false, error: "Aucun compte ne correspond à cet e-mail." };
         if (user.password !== password) return { ok: false, error: "Mot de passe incorrect. Veuillez réessayer." };
-        if (user.role === "teacher") return { ok: false, error: "L'espace établissement ouvrira prochainement. Contactez la clinique." };
         set({ currentUser: user });
         get().toast(`Bienvenue, ${user.firstName} !`, "success");
         return { ok: true };
@@ -238,20 +237,36 @@ export const useApp = create<AppState>()(
         get().toast("Séance mise à jour.", "success");
       },
       setSessionStatus: (id, status) => {
+        const session = get().sessions.find((se) => se.id === id);
+        const student = session ? get().students.find((st) => st.id === session.studentId) : undefined;
+        const newDate = session && status === "reportee" ? addDaysISO(1, new Date(session.date + "T12:00:00")) : null;
         set((s) => ({
           sessions: s.sessions.map((se) => {
             if (se.id !== id) return se;
             if (status === "reportee") return { ...se, status, date: addDaysISO(1, new Date(se.date + "T12:00:00")) };
             return { ...se, status };
           }),
+          notifications:
+            student && (status === "reportee" || status === "annulee")
+              ? notify(
+                  s,
+                  student.parentId,
+                  status === "reportee" ? "Séance reportée" : "Séance annulée",
+                  status === "reportee"
+                    ? `La séance de ${student.firstName} est reportée au ${fmtDate(newDate!)} à ${session!.time}.`
+                    : `La séance de ${student.firstName} du ${fmtDate(session!.date)} à ${session!.time} est annulée.`,
+                  "warning",
+                  "/dashboard/calendar"
+                )
+              : s.notifications,
         }));
         const labels: Record<SessionStatus, string> = {
           programmee: "Séance reprogrammée.",
           realisee: "Séance marquée comme réalisée.",
-          annulee: "Séance annulée.",
-          reportee: "Séance reportée à demain.",
+          annulee: "Séance annulée. La famille a été prévenue.",
+          reportee: "Séance reportée à demain. La famille a été prévenue.",
         };
-        get().toast(labels[status], status === "annulee" ? "info" : "success");
+        get().toast(labels[status], status === "annulee" || status === "reportee" ? "info" : "success");
       },
 
       saveReport: (sessionId, data) => {
@@ -353,14 +368,44 @@ export const useApp = create<AppState>()(
 
       /* ---- Espace élève ---- */
       toggleActivity: (resourceId) => {
-        set((s) => ({
-          completedActivities: s.completedActivities.includes(resourceId)
-            ? s.completedActivities.filter((a) => a !== resourceId)
-            : [...s.completedActivities, resourceId],
-        }));
-        if (!get().completedActivities.includes(resourceId)) {
-          get().toast("Bravo ! Activité terminée, continue comme ça !", "success");
-        }
+        const completing = !get().completedActivities.includes(resourceId);
+        const resource = get().resources.find((r) => r.id === resourceId);
+        const me = get().currentUser;
+        const student = me?.studentId ? get().students.find((st) => st.id === me.studentId) : undefined;
+        const pro = student ? get().users.find((u) => u.id === student.professionalId) : undefined;
+        set((s) => {
+          let notifications = s.notifications;
+          if (completing && student) {
+            notifications = notify(
+              s,
+              student.parentId,
+              "Activité terminée 🎉",
+              `${student.firstName} a terminé l'activité « ${resource?.title ?? ""} ».`,
+              "success",
+              "/dashboard"
+            );
+            if (pro) {
+              notifications = notify(
+                { ...s, notifications },
+                pro.id,
+                "Activité terminée",
+                `${student.firstName} a terminé « ${resource?.title ?? ""} ». Pensez à valoriser ce progrès en séance.`,
+                "success",
+                `/dashboard/students/${student.id}`
+              );
+            }
+          }
+          return {
+            completedActivities: completing
+              ? [...s.completedActivities, resourceId]
+              : s.completedActivities.filter((a) => a !== resourceId),
+            notifications,
+          };
+        });
+        get().toast(
+          completing ? "Bravo ! Activité terminée — ta famille et ton pédagogue sont prévenus. 🎉" : "Activité remise dans ta liste.",
+          completing ? "success" : "info"
+        );
       },
 
       resetDemo: () => {
@@ -370,8 +415,8 @@ export const useApp = create<AppState>()(
       },
     }),
     {
-      name: "ceip-store-v2",
-      version: 2,
+      name: "ceip-store-v3",
+      version: 3,
       partialize: (s) => ({
         users: s.users,
         students: s.students,

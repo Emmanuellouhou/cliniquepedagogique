@@ -5,7 +5,7 @@ import {
   HeartHandshake, Target, CalendarCheck2, FileText, Library, MessageSquare, GraduationCap,
   Phone, Mail, MapPin, Clock, CheckCircle2, ChevronDown, Eye, Lightbulb, ShieldCheck, Search,
 } from "lucide-react";
-import { Button, Card, Logo, ProgressBar, Reveal, CountUp, Badge, Avatar, inputCls, Field } from "../components/ui";
+import { Button, Card, Logo, ProgressBar, Reveal, CountUp, Badge, Avatar, inputCls, Field, KenBurns, SectionTitle, VideoShowcase } from "../components/ui";
 import { useApp } from "../lib/store";
 import { DIFFICULTIES, IMAGES, RESOURCE_CATEGORIES, fmtDate } from "../lib/data";
 
@@ -464,6 +464,21 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* ---------- Démo vidéo ---------- */}
+      <section className="bg-pine-950 py-20 lg:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <SectionTitle
+            dark
+            kicker="La plateforme en action"
+            title="Voyez le parcours d'un élève, en vingt secondes."
+            text="Du bilan initial aux notifications familiales : cette démonstration animée résume notre façon de travailler, étape par étape."
+          />
+          <div className="mt-12">
+            <VideoShowcase />
+          </div>
+        </div>
+      </section>
+
       {/* ---------- Approche (teaser) ---------- */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
         <Reveal>
@@ -562,6 +577,42 @@ export function HomePage() {
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ---------- Réussites ---------- */}
+      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:pb-28">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <Reveal>
+            <div className="relative">
+              <div className="absolute -left-5 -top-5 hidden h-full w-full rounded-[30px] border-2 border-dashed border-marigold-300 sm:block" aria-hidden="true" />
+              <KenBurns src={IMAGES.reussite} alt="Un élève congolais brandit fièrement son certificat de réussite" className="relative rounded-[30px] shadow-lift" ratio="4 / 3.4" />
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-marigold-600">
+              <TrendingUp size={15} /> Ils progressent
+            </p>
+            <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-pine-950 sm:text-4xl">
+              Chaque trimestre, des élèves retrouvent le goût d'apprendre.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-pine-600">
+              À Brazzaville et dans tout le Congo, nos élèves gagnent en confiance, en autonomie et en résultats.
+              La plateforme rend chacun de ces progrès visible et partageable avec toute la famille.
+            </p>
+            <div className="mt-8 grid grid-cols-3 gap-4">
+              {[
+                { v: 92, s: " %", l: "d'élèves en progression" },
+                { v: 6, s: " mois", l: "de suivi en moyenne" },
+                { v: 14, s: "", l: "écoles partenaires" },
+              ].map((x) => (
+                <div key={x.l} className="rounded-2xl border border-pine-100 bg-white p-4 text-center shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
+                  <p className="font-display text-2xl font-bold text-pine-800 sm:text-3xl"><CountUp to={x.v} suffix={x.s} /></p>
+                  <p className="mt-1 text-[11px] font-semibold text-pine-500">{x.l}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -764,6 +815,19 @@ export function AboutPage() {
         </div>
 
         <Reveal className="mt-16">
+          <div className="relative overflow-hidden rounded-[30px] shadow-lift">
+            <KenBurns src={IMAGES.team} alt="L'équipe de la clinique, des professionnels africains réunis dans leurs locaux de Brazzaville" className="rounded-[30px]" ratio="16 / 6.5" />
+            <div className="absolute inset-0 bg-gradient-to-t from-pine-950/80 via-pine-950/10 to-transparent" aria-hidden="true" />
+            <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-9">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-marigold-300">Une équipe, une conviction</p>
+              <p className="mt-2 max-w-2xl font-display text-xl font-bold text-paper sm:text-2xl">
+                « Chaque élève qui franchit notre porte mérite un regard attentif et un plan clair. »
+              </p>
+            </div>
+          </div>
+        </Reveal>
+
+        <Reveal className="mt-16">
           <h2 className="font-display text-3xl font-bold text-pine-950">L'équipe</h2>
           <p className="mt-2 max-w-xl text-sm text-pine-600">Des spécialistes complémentaires, unis par la même conviction : chaque élève peut progresser.</p>
         </Reveal>
@@ -832,6 +896,35 @@ export function ApprochePage() {
             </div>
           </div>
         </Reveal>
+
+        <div className="mt-16 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <Reveal delay={120} className="order-2 lg:order-1">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-marigold-600">
+              <HeartHandshake size={15} /> Le rôle de la famille
+            </p>
+            <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-pine-950 sm:text-4xl">
+              Les parents sont nos premiers partenaires.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-pine-600">
+              Un accompagnement réussit quand la maison et la clinique parlent le même langage. Nous prenons le temps
+              d'expliquer chaque étape, de répondre aux inquiétudes et de donner aux parents des gestes concrets pour
+              soutenir leur enfant au quotidien.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {["Points d'étape réguliers avec la famille", "Recommandations concrètes pour la maison", "Un espace parent accessible à tout moment"].map((p) => (
+                <li key={p} className="flex items-start gap-2.5 rounded-xl bg-pine-50 px-4 py-3 text-[13px] font-semibold text-pine-800">
+                  <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-pine-600" /> {p}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+          <Reveal className="order-1 lg:order-2">
+            <div className="relative">
+              <div className="absolute -right-5 -top-5 hidden h-full w-full rounded-[30px] border-2 border-dashed border-pine-300 sm:block" aria-hidden="true" />
+              <KenBurns src={IMAGES.famille} alt="Des parents congolais rencontrent une éducatrice pour faire le point sur les progrès de leur enfant" className="relative rounded-[30px] shadow-lift" ratio="4 / 3.4" />
+            </div>
+          </Reveal>
+        </div>
       </section>
     </>
   );
@@ -853,6 +946,33 @@ export function ServicesPage() {
         title="Des accompagnements concrets, du bilan à la réussite."
         text="Chaque service est pensé pour s'articuler avec les autres : c'est la cohérence du parcours qui fait la force de la clinique."
       />
+      <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <Reveal>
+            <div className="relative">
+              <div className="absolute -left-5 -top-5 hidden h-full w-full rounded-[30px] border-2 border-dashed border-marigold-300 sm:block" aria-hidden="true" />
+              <KenBurns src={IMAGES.seance} alt="Un pédagogue accompagne une élève en séance individuelle de soutien scolaire" className="relative rounded-[30px] shadow-lift" ratio="4 / 3.2" />
+            </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-marigold-600">
+              <Target size={15} /> Notre savoir-faire
+            </p>
+            <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-pine-950 sm:text-4xl">
+              Un accompagnement humain, structuré par le numérique.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-pine-600">
+              Derrière chaque service, il y a une séance réelle, un professionnel engagé et un élève qui avance.
+              La plateforme, elle, garde la trace de tout : pour que rien ne se perde et que chaque progrès compte.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              {["45 min par séance", "Référent stable", "Compte rendu systématique"].map((x) => (
+                <span key={x} className="rounded-full bg-pine-100 px-4 py-2 text-xs font-bold text-pine-700">{x}</span>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="space-y-5">
           {rows.map((r, i) => (
@@ -903,6 +1023,33 @@ export function ResourcesPublicPage() {
         title="Fiches, vidéos, activités : une bibliothèque au service du parcours."
         text="Les ressources sont sélectionnées par nos pédagogues puis attribuées à chaque élève selon ses objectifs. Connectez-vous pour accéder à la bibliothèque complète et aux ressources de votre enfant."
       />
+      <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <Reveal delay={120} className="order-2 lg:order-1">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-marigold-600">
+              <Library size={15} /> Choisies avec soin
+            </p>
+            <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-pine-950 sm:text-4xl">
+              Des supports concrets, pensés pour les élèves congolais.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-pine-600">
+              Fiches de lecture illustrées, jeux de calcul, activités de concentration : chaque ressource est testée
+              en séance avant d'être proposée, puis attribuée à l'élève dont elle servira le parcours.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2.5">
+              {RESOURCE_CATEGORIES.slice(0, 4).map((c) => (
+                <span key={c} className="rounded-full bg-pine-100 px-4 py-2 text-xs font-bold text-pine-700">{c}</span>
+              ))}
+            </div>
+          </Reveal>
+          <Reveal className="order-1 lg:order-2">
+            <div className="relative">
+              <div className="absolute -right-5 -top-5 hidden h-full w-full rounded-[30px] border-2 border-dashed border-pine-300 sm:block" aria-hidden="true" />
+              <KenBurns src={IMAGES.ressources} alt="Des mains d'enfants feuillètent un livre illustré entouré de matériel pédagogique" className="relative rounded-[30px] shadow-lift" ratio="4 / 3.2" />
+            </div>
+          </Reveal>
+        </div>
+      </section>
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="flex flex-wrap gap-2">
           {["Toutes", ...RESOURCE_CATEGORIES].map((c) => (
@@ -960,6 +1107,29 @@ export function FaqPage() {
       <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
         <FaqSection open={open} setOpen={setOpen} />
       </div>
+      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
+        <Reveal>
+          <div className="relative overflow-hidden rounded-[30px] shadow-lift">
+            <KenBurns src={IMAGES.accueil} alt="L'accueil chaleureux de la clinique à Brazzaville" className="rounded-[30px]" ratio="16 / 5.5" />
+            <div className="absolute inset-0 bg-gradient-to-r from-pine-950/85 via-pine-950/40 to-transparent" aria-hidden="true" />
+            <div className="absolute inset-0 flex items-center p-8 sm:p-12">
+              <div className="max-w-xl">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-marigold-300">Vous hésitez encore ?</p>
+                <h2 className="mt-3 font-display text-2xl font-bold leading-tight text-paper sm:text-3xl">
+                  Venez nous rencontrer, le premier échange est sans engagement.
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-pine-100/85">
+                  Notre équipe vous accueille du lundi au samedi pour comprendre la situation de votre enfant et répondre à toutes vos questions.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link to="/contact"><Button variant="marigold">Nous contacter</Button></Link>
+                  <Link to="/register"><Button variant="ghost" className="text-pine-100 hover:bg-pine-800/60">Créer un compte</Button></Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
     </>
   );
 }
@@ -1035,12 +1205,19 @@ export function ContactPage() {
           </Reveal>
           <Reveal delay={120} className="lg:col-span-5">
             <div className="space-y-5">
+              <div className="relative overflow-hidden rounded-[22px] shadow-soft">
+                <KenBurns src={IMAGES.accueil} alt="L'accueil de la clinique, à Brazzaville" className="rounded-[22px]" ratio="16 / 9" />
+                <div className="absolute inset-0 bg-gradient-to-t from-pine-950/70 to-transparent" aria-hidden="true" />
+                <p className="absolute bottom-0 left-0 right-0 p-5 font-display text-lg font-bold text-paper">
+                  Une porte ouverte sur la réussite de votre enfant.
+                </p>
+              </div>
               <Card className="p-7">
                 <h3 className="font-display text-lg font-bold text-pine-950">Nos coordonnées</h3>
                 <ul className="mt-5 space-y-4 text-sm text-pine-700">
-                  <li className="flex items-start gap-3"><span className="rounded-lg bg-pine-100 p-2 text-pine-700"><MapPin size={16} /></span> 12 rue des Écoles, 75005 Paris — à 5 min du métro Maubert-Mutualité</li>
-                  <li className="flex items-center gap-3"><span className="rounded-lg bg-pine-100 p-2 text-pine-700"><Phone size={16} /></span> 01 84 20 45 67</li>
-                  <li className="flex items-center gap-3"><span className="rounded-lg bg-pine-100 p-2 text-pine-700"><Mail size={16} /></span> contact@clinique-education.fr</li>
+                  <li className="flex items-start gap-3"><span className="rounded-lg bg-pine-100 p-2 text-pine-700"><MapPin size={16} /></span> Avenue Amílcar Cabral, Centre-ville, Brazzaville — République du Congo</li>
+                  <li className="flex items-center gap-3"><span className="rounded-lg bg-pine-100 p-2 text-pine-700"><Phone size={16} /></span> +242 06 612 34 56</li>
+                  <li className="flex items-center gap-3"><span className="rounded-lg bg-pine-100 p-2 text-pine-700"><Mail size={16} /></span> contact@clinique-education.cg</li>
                 </ul>
               </Card>
               <Card className="p-7">

@@ -3,21 +3,21 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Target, CalendarDays, ClipboardList, BarChart3, Library,
   MessageSquare, FileText, Settings, LogOut, Bell, Menu, X, Sparkles, GraduationCap,
-  CheckCircle2, Info, AlertTriangle, Building2,
+  CheckCircle2, Info, AlertTriangle,
 } from "lucide-react";
 import { Avatar, Badge, Button, Logo } from "../components/ui";
 import { unreadMessages, unreadNotifications, useApp } from "../lib/store";
 import { fmtDateTime, fullName } from "../lib/data";
 
 const NAV: { to: string; label: string; icon: ReactNode; roles: string[] }[] = [
-  { to: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={18} />, roles: ["admin", "professional", "parent", "student"] },
+  { to: "/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={18} />, roles: ["admin", "professional", "parent", "student", "teacher"] },
   { to: "/dashboard/students", label: "Élèves", icon: <Users size={18} />, roles: ["admin", "professional"] },
   { to: "/dashboard/goals", label: "Objectifs", icon: <Target size={18} />, roles: ["admin", "professional", "parent"] },
   { to: "/dashboard/sessions", label: "Séances", icon: <ClipboardList size={18} />, roles: ["admin", "professional"] },
   { to: "/dashboard/calendar", label: "Calendrier", icon: <CalendarDays size={18} />, roles: ["admin", "professional", "parent", "student"] },
   { to: "/dashboard/evaluations", label: "Évaluations", icon: <BarChart3 size={18} />, roles: ["admin", "professional", "parent"] },
   { to: "/dashboard/resources", label: "Ressources", icon: <Library size={18} />, roles: ["admin", "professional", "parent", "student"] },
-  { to: "/dashboard/messages", label: "Messagerie", icon: <MessageSquare size={18} />, roles: ["admin", "professional", "parent"] },
+  { to: "/dashboard/messages", label: "Messagerie", icon: <MessageSquare size={18} />, roles: ["admin", "professional", "parent", "teacher"] },
   { to: "/dashboard/reports", label: "Rapports", icon: <FileText size={18} />, roles: ["admin", "professional"] },
   { to: "/dashboard/settings", label: "Paramètres", icon: <Settings size={18} />, roles: ["admin", "professional", "parent"] },
 ];
@@ -97,14 +97,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           </NavLink>
         ))}
-        {currentUser.role === "teacher" && (
-          <button
-            onClick={() => toast("L'espace établissement sera disponible prochainement.", "info")}
-            className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-pine-400 cursor-pointer"
-          >
-            <Building2 size={18} /> Espace établissement <Badge bg="#f8eccb" fg="#8f5912">Bientôt</Badge>
-          </button>
-        )}
       </nav>
       <div className="border-t border-pine-100 p-4">
         <button
