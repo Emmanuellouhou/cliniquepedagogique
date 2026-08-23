@@ -40,6 +40,7 @@ export interface User {
   childIds?: string[];
   studentId?: string;
   phone?: string;
+  school?: string; // pour les enseignants : établissement de rattachement
   createdAt: string;
 }
 
@@ -270,7 +271,7 @@ const users: User[] = [
   { id: "u-parent3", firstName: "Nadia", lastName: "Khelifi", email: "nadia.khelifi@email.fr", password: "demo123", role: "parent", avatarColor: "#8f5912", childIds: ["st-sarah"], createdAt: addDaysISO(-90) },
   { id: "u-parent4", firstName: "Julie", lastName: "Petit", email: "julie.petit@email.fr", password: "demo123", role: "parent", avatarColor: "#a84432", childIds: ["st-lucas"], createdAt: addDaysISO(-60) },
   { id: "u-eleve", firstName: "Emma", lastName: "Moreau", email: "emma@clinique-education.fr", password: "demo123", role: "student", avatarColor: "#de7257", studentId: "st-emma", createdAt: addDaysISO(-150) },
-  { id: "u-teacher", firstName: "Julien", lastName: "Perrin", email: "j.perrin@ac-paris.fr", password: "demo123", role: "teacher", avatarColor: "#5ca28a", createdAt: addDaysISO(-45) },
+  { id: "u-teacher", firstName: "Julien", lastName: "Perrin", email: "j.perrin@ac-paris.fr", password: "demo123", role: "teacher", avatarColor: "#5ca28a", school: "École Jean-Moulin", createdAt: addDaysISO(-45) },
 ];
 
 const students: Student[] = [

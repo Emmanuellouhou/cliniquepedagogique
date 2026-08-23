@@ -1,6 +1,6 @@
 import { Component, useEffect, type ReactNode } from "react";
 import { HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { AlertTriangle, Building2, RotateCcw } from "lucide-react";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 import { ToastHost } from "./components/ui";
 import { useApp } from "./lib/store";
 import type { Role } from "./lib/data";
@@ -8,7 +8,7 @@ import { PublicLayout, HomePage, AboutPage, ApprochePage, ServicesPage, Resource
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AppShell } from "./app/shell";
 import { AdminDashboard, ProDashboard } from "./pages/dashboards";
-import { ParentDashboard, StudentSpace } from "./pages/spaces";
+import { ParentDashboard, StudentSpace, TeacherSpace } from "./pages/spaces";
 import { StudentsPage } from "./pages/students";
 import { StudentProfilePage } from "./pages/student-profile";
 import { SessionsPage } from "./pages/sessions";
@@ -93,19 +93,6 @@ function RoleRoute({ roles, children }: { roles: Role[]; children: React.ReactNo
   return <>{children}</>;
 }
 
-function TeacherSoon() {
-  return (
-    <div className="mx-auto max-w-xl py-16 text-center">
-      <span className="mx-auto inline-flex rounded-2xl bg-pine-100 p-5 text-pine-600"><Building2 size={30} /></span>
-      <h2 className="mt-5 font-display text-2xl font-bold text-pine-950">Espace établissement — bientôt disponible</h2>
-      <p className="mt-3 text-sm leading-relaxed text-pine-600">
-        L'intégration des enseignants et des établissements est prévue dans la prochaine évolution de la plateforme :
-        partage d'observations, objectifs communs et coordination pédagogique. En attendant, la clinique reste votre interlocutrice directe.
-      </p>
-    </div>
-  );
-}
-
 function DashboardHome() {
   const user = useApp((s) => s.currentUser);
   if (!user) return null;
@@ -114,7 +101,7 @@ function DashboardHome() {
     case "professional": return <ProDashboard />;
     case "parent": return <ParentDashboard />;
     case "student": return <StudentSpace />;
-    case "teacher": return <TeacherSoon />;
+    case "teacher": return <TeacherSpace />;
     default: return null;
   }
 }

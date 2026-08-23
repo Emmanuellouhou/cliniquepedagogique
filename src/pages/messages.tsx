@@ -37,6 +37,11 @@ export function MessagesPage() {
       const proIds = new Set(myChildren.map((s) => s.professionalId));
       return state.users.filter((u) => proIds.has(u.id));
     }
+    if (me.role === "teacher") {
+      const myStudents = state.students.filter((s) => s.school === me.school);
+      const proIds = new Set(myStudents.map((s) => s.professionalId));
+      return state.users.filter((u) => u.id !== me.id && (u.role === "admin" || proIds.has(u.id)));
+    }
     return [];
   }, [me, state.users, state.students]);
 

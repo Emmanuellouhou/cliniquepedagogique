@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarCheck2, Target, MessageSquare, Lightbulb, CheckCircle2, TrendingUp, BookOpen,
-  Trophy, Star, HeartHandshake, Sparkles, ArrowRight, ClipboardList, PartyPopper, PlayCircle,
+  Trophy, Star, HeartHandshake, Sparkles, ArrowRight, ClipboardList, PartyPopper, PlayCircle, FileText,
+  GraduationCap, School, Eye, Building2, Users,
 } from "lucide-react";
 import { Avatar, Badge, Card, EmptyState, ProgressBar, Reveal, Ring } from "../components/ui";
 import { useApp, visibleStudents } from "../lib/store";
 import { DIFFICULTIES, GOAL_STATUSES, SESSION_TYPE_COLORS, fmtDate, fmtDateLong, fullName, studentProgress, todayISO } from "../lib/data";
+import { ReportViewModal } from "./sessions";
 
 /* ================================ ESPACE PARENT ================================ */
 
@@ -15,6 +17,7 @@ export function ParentDashboard() {
   const me = state.currentUser!;
   const children = visibleStudents(state);
   const [childIdx, setChildIdx] = useState(0);
+  const [viewReportId, setViewReportId] = useState<string | null>(null);
   const child = children[childIdx];
   const today = todayISO();
 
@@ -42,6 +45,10 @@ export function ParentDashboard() {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
   const childResources = state.resources.filter((r) => r.assignedTo.includes(child.id));
   const lastEval = [...state.evaluations].filter((e) => e.studentId === child.id).sort((a, b) => b.date.localeCompare(a.date))[0];
+  const recentReports = state.reports
+    .filter((r) => state.sessions.some((s) => s.id === r.sessionId && s.studentId === child.id))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 3);
 
   const tips = [
     ...(lastReport ? [{ icon: <BookOpen size={18} />, t: "À la maison cette semaine", d: lastReport.recommendations }] : []),
@@ -162,6 +169,37 @@ export function ParentDashboard() {
         </Reveal>
       )}
 
+      {recentReports.length > 0 && (
+        <Reveal>
+          <Card className="p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="flex items-center gap-2 font-display text-lg font-bold text-pine-950"><FileText size={18} className="text-pine-600" /> Comptes rendus de séances</h3>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-pine-400">{recentReports.length} récent{recentReports.length > 1 ? "s" : ""}</span>
+            </div>
+            <div className="mt-4 space-y-2.5">
+              {recentReports.map((r) => {
+                const sess = state.sessions.find((s) => s.id === r.sessionId);
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => setViewReportId(r.id)}
+                    className="group flex w-full items-center justify-between gap-3 rounded-xl border border-pine-100 bg-pine-50/50 px-4 py-3.5 text-left transition-all hover:border-pine-300 hover:bg-white hover:shadow-soft cursor-pointer"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13px] font-bold text-pine-900 group-hover:text-pine-700">{sess ? sess.type : "Séance"} — {r.objective}</span>
+                      <span className="mt-0.5 block text-[11px] text-pine-500">Séance du {sess ? fmtDate(sess.date) : "—"} · rédigé le {fmtDate(r.createdAt.slice(0, 10))}</span>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-pine-800 px-3 py-1.5 text-[11px] font-bold text-paper transition-colors group-hover:bg-pine-700">
+                      Lire <ArrowRight size={12} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        </Reveal>
+      )}
+
       <Reveal>
         <div className="rounded-[24px] bg-pine-900 p-7 text-paper shadow-lift sm:p-9">
           <h3 className="flex items-center gap-2.5 font-display text-xl font-bold sm:text-2xl">
@@ -186,6 +224,8 @@ export function ParentDashboard() {
           </div>
         </div>
       </Reveal>
+
+      <ReportViewModal open={viewReportId !== null} onClose={() => setViewReportId(null)} reportId={viewReportId} />
     </div>
   );
 }
@@ -380,6 +420,135 @@ export function StudentSpace() {
           </Card>
         </Reveal>
       </div>
+    </div>
+  );
+}
+
+/* ================================ ESPACE ÉTABLISSEMENT (ENSEIGNANT) ================================ */
+
+export function TeacherSpace() {
+  const state = useApp();
+  const me = state.currentUser!;
+  const today = todayISO();
+
+  // L'enseignant voit uniquement les élèves de son établissement (accès en lecture).
+  const myStudents = state.students.filter((s) => s.school === me.school);
+  const sharedGoals = myStudents.flatMap((s) =>
+    state.goals.filter((g) => g.studentId === s.id && g.status !== "atteint").map((g) => ({ ...g, student: s }))
+  );
+  const avgProgress = myStudents.length
+    ? Math.round(myStudents.reduce((acc, s) => acc + studentProgress(state.goals, s.id), 0) / myStudents.length)
+    : 0;
+
+  if (myStudents.length === 0) {
+    return (
+      <div className="mx-auto max-w-xl py-16">
+        <EmptyState
+          icon={<School size={28} />}
+          title={`Bienvenue, ${me.firstName} !`}
+          text="Votre espace établissement est prêt. Dès que des élèves de votre établissement seront accompagnés par la clinique, vous retrouverez ici leurs objectifs partagés et leur progression."
+          action={<Link to="/dashboard/messages"><ButtonLink>Contacter la clinique</ButtonLink></Link>}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-7">
+      <Reveal>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-pine-500">
+              Espace établissement
+              <span className="inline-flex items-center gap-1 rounded-full bg-sea-100 px-2.5 py-0.5 text-[10px] font-bold text-sea-700"><Eye size={11} /> Accès lecture</span>
+            </p>
+            <h2 className="mt-1 font-display text-2xl font-bold text-pine-950 sm:text-3xl">Bonjour, {me.firstName} 👋</h2>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-pine-600"><Building2 size={14} /> {me.school} · Suivi coordonné avec la clinique</p>
+          </div>
+          <Link to="/dashboard/messages"><ButtonLink variant="dark"><MessageSquare size={15} /> Échanger avec la clinique</ButtonLink></Link>
+        </div>
+      </Reveal>
+
+      <div className="grid gap-5 sm:grid-cols-3">
+        {[
+          { icon: <Users size={18} />, label: "Élèves accompagnés", value: `${myStudents.length}`, tone: "#1f6c57", bg: "#dcebe4" },
+          { icon: <TrendingUp size={18} />, label: "Progression moyenne", value: `${avgProgress} %`, tone: "#b37413", bg: "#f8eccb" },
+          { icon: <Target size={18} />, label: "Objectifs partagés actifs", value: `${sharedGoals.length}`, tone: "#3f6577", bg: "#dce7ec" },
+        ].map((s, i) => (
+          <Reveal key={s.label} delay={i * 80}>
+            <Card className="flex h-full items-center gap-4 p-5">
+              <span className="rounded-xl p-3" style={{ backgroundColor: s.bg, color: s.tone }}>{s.icon}</span>
+              <div>
+                <p className="font-display text-2xl font-bold text-pine-950">{s.value}</p>
+                <p className="text-xs font-semibold text-pine-500">{s.label}</p>
+              </div>
+            </Card>
+          </Reveal>
+        ))}
+      </div>
+
+      <Reveal>
+        <div className="grid gap-5 lg:grid-cols-2">
+          {myStudents.map((s) => {
+            const prog = studentProgress(state.goals, s.id);
+            const pro = state.users.find((u) => u.id === s.professionalId);
+            const goals = state.goals.filter((g) => g.studentId === s.id && g.status !== "atteint");
+            const nextSession = state.sessions
+              .filter((x) => x.studentId === s.id && x.status === "programmee" && x.date >= today)
+              .sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`))[0];
+            return (
+              <Card key={s.id} className="p-6">
+                <div className="flex items-center gap-3">
+                  <Avatar name={fullName(s)} size={46} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-[16px] font-bold text-pine-900">{fullName(s)}</p>
+                    <p className="text-xs text-pine-500">{s.schoolLevel} · accompagné·e par {pro ? `${pro.firstName} ${pro.lastName}` : "—"}</p>
+                  </div>
+                  <Badge bg={GOAL_STATUSES[prog >= 100 ? "atteint" : "en_cours"].bg} fg={GOAL_STATUSES[prog >= 100 ? "atteint" : "en_cours"].fg}>{prog} %</Badge>
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="flex-1"><ProgressBar value={prog} height={7} color={prog >= 70 ? "#1f6c57" : prog >= 40 ? "#d2921a" : "#c75540"} /></div>
+                  <span className="text-[11px] font-bold text-pine-600">Progression globale</span>
+                </div>
+                <div className="mt-4">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-pine-500">Objectifs partagés avec la classe</p>
+                  <div className="mt-2 space-y-2">
+                    {goals.length === 0 && <p className="text-xs text-pine-500">Tous les objectifs sont atteints.</p>}
+                    {goals.map((g) => (
+                      <div key={g.id} className="rounded-xl bg-pine-50 px-3.5 py-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-[12.5px] font-bold text-pine-900">{g.title}</p>
+                          <span className="shrink-0 text-[11px] font-bold text-pine-600">{g.progress} %</span>
+                        </div>
+                        <div className="mt-1.5"><ProgressBar value={g.progress} height={5} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {nextSession && (
+                  <p className="mt-3 flex items-center gap-1.5 text-[11.5px] text-pine-600">
+                    <CalendarCheck2 size={13} className="text-pine-500" /> Prochaine séance : {fmtDateLong(nextSession.date)} à {nextSession.time}
+                  </p>
+                )}
+                <Link to={`/dashboard/messages?to=${s.professionalId}`} className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-pine-600 transition-colors hover:text-pine-800">
+                  Partager une observation <ArrowRight size={13} />
+                </Link>
+              </Card>
+            );
+          })}
+        </div>
+      </Reveal>
+
+      <Reveal>
+        <div className="flex items-start gap-3.5 rounded-[22px] border border-marigold-200 bg-marigold-50 p-6">
+          <GraduationCap size={22} className="mt-0.5 shrink-0 text-marigold-600" />
+          <p className="text-[13px] leading-relaxed text-pine-800">
+            <strong>Votre rôle dans le parcours :</strong> vous consultez les objectifs partagés et la progression, en lecture seule, dans le respect de la
+            confidentialité des familles. Pour toute observation utile (comportement en classe, productions, évolutions), utilisez la messagerie : elle
+            alimente directement le suivi du professionnel référent.
+          </p>
+        </div>
+      </Reveal>
     </div>
   );
 }
