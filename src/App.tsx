@@ -7,6 +7,7 @@ import type { Role } from "./lib/data";
 import { PublicLayout, HomePage, AboutPage, ApprochePage, ServicesPage, ResourcesPublicPage, FaqPage, ContactPage } from "./pages/public";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { AppShell } from "./app/shell";
+import { RoleSwitcher } from "./components/RoleSwitcher";
 import { AdminDashboard, ProDashboard } from "./pages/dashboards";
 import { ParentDashboard, StudentSpace, TeacherSpace } from "./pages/spaces";
 import { StudentsPage } from "./pages/students";
@@ -111,6 +112,7 @@ export default function App() {
     <HashRouter>
       <ErrorBoundary>
       <ScrollToTop />
+      <RoleSwitcher />
       <Routes>
         {/* Pages publiques */}
         <Route path="/" element={<Public><HomePage /></Public>} />
